@@ -145,8 +145,6 @@ def button(bot, update):
                     InlineKeyboardButton('👍🏼 {}'.format((like if (like > 0) else '')), callback_data='like'),
                     InlineKeyboardButton('👎🏼 {}'.format((dislike if (dislike > 0) else '')), callback_data='dislike'),
                     InlineKeyboardButton('💩 {}'.format((poop if (poop > 0) else '')), callback_data='poop')
-                ], [
-                    InlineKeyboardButton('share', callback_data='share')
                 ]
             ]
 
