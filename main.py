@@ -8,6 +8,7 @@ InlineQueryResultAudio, InlineQueryResultArticle, InputTextMessageContent)
 
 TOKEN = ''
 CHANNEL_ID = ''
+ADMINS = [config.ADMIN_1, config.ADMIN_2]
 
 SONG_S, ARTIST_S, ALBUM_S, GENRES_S, RELEASED_S, FILE_S = range(6)
 SONG, SONG_URL, ARTIST, ARTIST_URL, ALBUM, ALBUM_URL, FILE_ID, CAPTION, CAPTION_URL = [''] * 9
@@ -161,11 +162,15 @@ def button(bot, update):
 
 
 def new(bot, update):
-    global STATEMENT
-    STATEMENT = ''
-    update.message.reply_text(text='Song?')
+    user = '{}'.format(update.message.chat.id)
+    if (user in ADMINS):
+        global STATEMENT
+        STATEMENT = ''
+        update.message.reply_text(text='Song?')
 
-    return SONG_S
+        return SONG_S
+    else:
+        update.message.reply_text('You are not authorized to use this command 😁')
 
 
 def song(bot, update):
