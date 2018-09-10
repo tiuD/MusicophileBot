@@ -1,0 +1,17 @@
+# virtualenv files
+/venv
+
+# config files
+config.py
+config.pyc
+
+# temp files
+conv.py
+inline.py
+meta.py
+
+# vs code 
+/.vscode 
+
+# py cache
+/__pycache__
