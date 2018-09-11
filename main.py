@@ -1,6 +1,7 @@
 import sys, config
 from pymongo import MongoClient
 from uuid import uuid4
+from functools import wraps
 from telegram.ext import (Updater, Filters, 
 CommandHandler, MessageHandler, ConversationHandler, CallbackQueryHandler, InlineQueryHandler)
 from telegram import (ParseMode, InlineKeyboardButton, InlineKeyboardMarkup, 
@@ -35,6 +36,17 @@ VOTE_KEYBOARD = [
         InlineKeyboardButton('💩', callback_data='poop')
     ]
 ]
+
+
+def restricted(func): 
+    @wraps(func)
+    def wrapped(bot, update, *args, **kwargs):
+        user_id = update.effective_user.id
+        if user_id not in ADMINS:
+            print('Aunthorized access denied for {}'.format(user_id))
+            return
+        return func(bot, update, *args, **kwargs)
+    return wrapped
 
 
 def start(bot, update):
@@ -160,17 +172,36 @@ def button(bot, update):
 
     bot.answer_callback_query(query.id, text='')
 
+@restricted
+def stats(bot, update):
+    try:
+        hashtags_count = 0
+        stats_statement = ''
+        client = MongoClient('localhost', 27017)
+        db = client[config.DB_NAME]
+        songs = db['Songs'].find({})
+        votes = db['Votes'].find({})
+        
+        for song in songs: 
+            hashtags_count += len(song['genres'])
+        
+        stats_statement += 'Number of songs: {}\n'.format(songs.count())
+        stats_statement += 'Number of hashtags: {}\n'.format(hashtags_count)
+        stats_statement += 'Number of votes: {}\n'.format(votes.count())
+        update.message.reply_text(stats_statement)
+    except Exception as e:
+        print(e)
+    finally:
+        client.close()
 
+
+@restricted
 def new(bot, update):
-    user = '{}'.format(update.message.chat.id)
-    if (user in ADMINS):
-        global STATEMENT
-        STATEMENT = ''
-        update.message.reply_text(text='Song?')
+    global STATEMENT
+    STATEMENT = ''
+    update.message.reply_text(text='Song?')
 
-        return SONG_S
-    else:
-        update.message.reply_text('You are not authorized to use this command 😁')
+    return SONG_S
 
 
 def song(bot, update):
@@ -263,6 +294,7 @@ def main():
     )
 
     dispatcher.add_handler(CommandHandler('start', start))
+    dispatcher.add_handler(CommandHandler('stats', stats))
     dispatcher.add_handler(conv_handler)
     dispatcher.add_handler(CallbackQueryHandler(button))
     dispatcher.add_handler(MessageHandler(Filters.audio, file))
