@@ -13,6 +13,7 @@ ADMINS = [config.ADMIN_1, config.ADMIN_2]
 
 SONG_S, ARTIST_S, ALBUM_S, GENRES_S, RELEASED_S, FILE_S = range(6)
 SONG, SONG_URL, ARTIST, ARTIST_URL, ALBUM, ALBUM_URL, FILE_ID, CAPTION, CAPTION_URL = [''] * 9
+CAPTION_READY = ''
 GENRES = []
 RELEASED = 0
 STATEMENT = ''
@@ -61,7 +62,7 @@ def button(bot, update):
             bot.send_message(chat_id=CHANNEL_ID, text=STATEMENT, parse_mode=ParseMode.MARKDOWN)
             sent = bot.send_audio(chat_id=CHANNEL_ID, 
                         audio=FILE_ID, 
-                        caption='[{}]({})'.format(CAPTION, CAPTION_URL),
+                        caption=CAPTION_READY,
                         parse_mode=ParseMode.MARKDOWN,
                         reply_markup=InlineKeyboardMarkup(VOTE_KEYBOARD))
 
@@ -172,6 +173,7 @@ def button(bot, update):
 
     bot.answer_callback_query(query.id, text='')
 
+
 @restricted
 def stats(bot, update):
     try:
@@ -250,18 +252,25 @@ def released(bot, update):
 
 
 def file(bot, update):
-    global FILE_ID, CAPTION, CAPTION_URL
+    global FILE_ID, CAPTION, CAPTION_URL, CAPTION_READY
     if update.message.caption_entities is None:
         update.message.reply_text('You forgot to add caption url!')
     else:
         FILE_ID = update.message.audio.file_id
         CAPTION = update.message.caption
         CAPTION_URL = update.message.caption_entities[0].url
+        offset = update.message.caption_entities[0].offset
+        length = update.message.caption_entities[0].length
+        CAPTION_READY = '{}[{}]({}){}'.format(
+                           CAPTION[: offset], 
+                           CAPTION[offset: (offset+length)],
+                           CAPTION_URL,
+                           CAPTION[(offset+length):])
         update.message.reply_text(STATEMENT, 
                                   parse_mode=ParseMode.MARKDOWN)
 
         update.message.reply_audio(audio=FILE_ID, 
-                       caption='[{}]({})'.format(CAPTION, CAPTION_URL),
+                       caption=CAPTION_READY,
                        parse_mode=ParseMode.MARKDOWN,
                        reply_markup=InlineKeyboardMarkup(VOTE_KEYBOARD))
         update.message.reply_text('Is this good?', 
