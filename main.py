@@ -2,6 +2,7 @@ import sys, config
 from pymongo import MongoClient
 from uuid import uuid4
 from functools import wraps
+from collections import Counter
 from telegram.ext import (Updater, Filters, 
 CommandHandler, MessageHandler, ConversationHandler, CallbackQueryHandler, InlineQueryHandler)
 from telegram import (ParseMode, InlineKeyboardButton, InlineKeyboardMarkup, 
@@ -175,6 +176,30 @@ def button(bot, update):
 
 
 @restricted
+def top(bot, update, args):
+    text = ''
+    if (args[0] == 'genres'):
+        hashtags = []
+
+        count = int(args[1]) if(len(args) > 1) else 10
+        
+        client = MongoClient('localhost', 27017)
+        db = client[config.DB_NAME]
+        songs = db['Songs'].find({})
+
+        for song in songs:
+            hashtags.extend(song['genres'])
+        
+        freq = Counter(hashtags)
+        
+        i = 1
+        for item in freq.most_common(count):
+            text += '{}. {}: {} time{}\n'.format(i, item[0], item[1], ('s' if (item[1] > 1) else ''))
+            i += 1
+        
+        update.message.reply_text(text)
+
+@restricted
 def stats(bot, update):
     try:
         hashtags_count = 0
@@ -304,6 +329,7 @@ def main():
 
     dispatcher.add_handler(CommandHandler('start', start))
     dispatcher.add_handler(CommandHandler('stats', stats))
+    dispatcher.add_handler(CommandHandler('top', top, pass_args=True))
     dispatcher.add_handler(conv_handler)
     dispatcher.add_handler(CallbackQueryHandler(button))
     dispatcher.add_handler(MessageHandler(Filters.audio, file))

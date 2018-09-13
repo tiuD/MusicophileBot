@@ -6,9 +6,7 @@ config.py
 config.pyc
 
 # temp files
-conv.py
-inline.py
-meta.py
+/temp
 
 # vs code 
 /.vscode 
