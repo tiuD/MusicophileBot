@@ -1,4 +1,4 @@
-import sys, config
+import sys, config, random, traceback
 from pymongo import MongoClient
 from uuid import uuid4
 from functools import wraps
@@ -324,25 +324,29 @@ def file(bot, update):
     if update.message.caption_entities is None:
         update.message.reply_text('You forgot to add caption url!')
     else:
-        FILE_ID = update.message.audio.file_id
-        CAPTION = update.message.caption
-        CAPTION_URL = update.message.caption_entities[0].url
-        offset = update.message.caption_entities[0].offset
-        length = update.message.caption_entities[0].length
-        CAPTION_READY = '{}[{}]({}){}'.format(
-                           CAPTION[: offset], 
-                           CAPTION[offset: (offset+length)],
-                           CAPTION_URL,
-                           CAPTION[(offset+length):])
-        update.message.reply_text(STATEMENT, 
-                                  parse_mode=ParseMode.MARKDOWN)
+        try:
+            FILE_ID = update.message.audio.file_id
+            CAPTION = update.message.caption
+            caption_words = CAPTION.split(' ')
+            random_word = random.choice(caption_words)
+            offset = CAPTION.find(random_word)
+            length = len(random_word)
+            CAPTION_READY = '{}[{}]({}){}'.format(
+                            CAPTION[: offset], 
+                            CAPTION[offset: (offset+length)],
+                            'https://t.me/musicophileowl',
+                            CAPTION[(offset+length):])
+            update.message.reply_text(STATEMENT, 
+                                    parse_mode=ParseMode.MARKDOWN)
 
-        update.message.reply_audio(audio=FILE_ID, 
-                       caption=CAPTION_READY,
-                       parse_mode=ParseMode.MARKDOWN,
-                       reply_markup=InlineKeyboardMarkup(VOTE_KEYBOARD))
-        update.message.reply_text('Is this good?', 
-                                  reply_markup=InlineKeyboardMarkup(CONFIRM_KEYBOARD))
+            update.message.reply_audio(audio=FILE_ID, 
+                        caption=CAPTION_READY,
+                        parse_mode=ParseMode.MARKDOWN,
+                        reply_markup=InlineKeyboardMarkup(VOTE_KEYBOARD))
+            update.message.reply_text('Is this good?', 
+                                    reply_markup=InlineKeyboardMarkup(CONFIRM_KEYBOARD))
+        except Exception as e:
+            traceback.print_tb(e.__traceback__)
     
     return ConversationHandler.END
 
