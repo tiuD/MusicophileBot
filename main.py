@@ -276,7 +276,7 @@ def new(bot, update):
 
 def song(bot, update):
     global SONG, SONG_URL, STATEMENT
-    [SONG, SONG_URL] = [x.strip() for x in update.message.text.split(',')]
+    [SONG, SONG_URL] = [x.strip() for x in update.message.text.split(',,')]
     STATEMENT += '*Song*: [{}]({})\n'.format(SONG, SONG_URL)
     update.message.reply_text('{}Artist?'.format(STATEMENT), parse_mode=ParseMode.MARKDOWN)
 
@@ -285,7 +285,7 @@ def song(bot, update):
 
 def artist(bot, update):
     global ARTIST, ARTIST_URL, STATEMENT
-    [ARTIST, ARTIST_URL] = [x.strip() for x in update.message.text.split(',')]
+    [ARTIST, ARTIST_URL] = [x.strip() for x in update.message.text.split(',,')]
     STATEMENT += '*Artist*: [{}]({})\n'.format(ARTIST, ARTIST_URL)
     update.message.reply_text('{}Album?'.format(STATEMENT), parse_mode=ParseMode.MARKDOWN)
 
@@ -294,7 +294,7 @@ def artist(bot, update):
 
 def album(bot, update):
     global ALBUM, ALBUM_URL, STATEMENT
-    [ALBUM, ALBUM_URL] = [x.strip() for x in update.message.text.split(',')]
+    [ALBUM, ALBUM_URL] = [x.strip() for x in update.message.text.split(',,')]
     STATEMENT += '*Album*: [{}]({})\n'.format(ALBUM, ALBUM_URL)
     update.message.reply_text('{}Genres?'.format(STATEMENT), parse_mode=ParseMode.MARKDOWN)
 
