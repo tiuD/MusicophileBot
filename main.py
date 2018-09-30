@@ -3,6 +3,7 @@ from pymongo import MongoClient
 from uuid import uuid4
 from functools import wraps
 from collections import Counter
+from datetime import datetime
 from telegram.ext import (Updater, Filters, 
 CommandHandler, MessageHandler, ConversationHandler, CallbackQueryHandler, InlineQueryHandler)
 from telegram import (ParseMode, InlineKeyboardButton, InlineKeyboardMarkup, 
@@ -84,6 +85,8 @@ def button(bot, update):
                     "poop": 0
                 }
             }
+
+            song_json['date'] = '{}'.format(datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
             
             client = MongoClient('localhost', 27017)
             db = client[config.DB_NAME]
@@ -93,7 +96,7 @@ def button(bot, update):
                                   chat_id=query.message.chat_id,
                                   message_id=query.message.message_id)
         except Exception as e:
-            print(e)
+            traceback.print_tb(e.__traceback__)
     elif (query.data == 'cancel'):
         bot.edit_message_text(text="Oh 😮 OK then 😬 I'll try to forget about it.",
                               chat_id=query.message.chat_id,
