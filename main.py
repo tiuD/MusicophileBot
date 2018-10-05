@@ -14,8 +14,9 @@ CHANNEL_ID = ''
 ADMINS = [config.ADMIN_1, config.ADMIN_2]
 
 SONG_S, ARTIST_S, ALBUM_S, GENRES_S, RELEASED_S, FILE_S = range(6)
-SONG, SONG_URL, ARTIST, ARTIST_URL, ALBUM, ALBUM_URL, FILE_ID, CAPTION, CAPTION_URL = [''] * 9
+SONG, SONG_URL, ALBUM, ALBUM_URL, FILE_ID, CAPTION, CAPTION_URL = [''] * 7
 CAPTION_READY = ''
+ARTISTS = []
 GENRES = []
 RELEASED = 0
 STATEMENT = ''
@@ -72,8 +73,7 @@ def button(bot, update):
                 "song_id": sent.message_id,
                 "name": SONG,
                 "name_url": SONG_URL,
-                "artist": ARTIST,
-                "artist_url": ARTIST_URL,
+                "artists": ARTISTS,
                 "album": ALBUM,
                 "album_url": ALBUM_URL,
                 "genres": GENRES,
@@ -287,7 +287,8 @@ def new(bot, update):
 
 def song(bot, update):
     global SONG, SONG_URL, STATEMENT
-    [SONG, SONG_URL] = [x.strip() for x in update.message.text.split(',,')]
+    SONG = update.message.text
+    SONG_URL = update.message.entities[0]['url']
     STATEMENT += '*Song*: [{}]({})\n'.format(SONG, SONG_URL)
     update.message.reply_text('{}Artist?'.format(STATEMENT), parse_mode=ParseMode.MARKDOWN)
 
@@ -295,9 +296,22 @@ def song(bot, update):
 
 
 def artist(bot, update):
-    global ARTIST, ARTIST_URL, STATEMENT
-    [ARTIST, ARTIST_URL] = [x.strip() for x in update.message.text.split(',,')]
-    STATEMENT += '*Artist*: [{}]({})\n'.format(ARTIST, ARTIST_URL)
+    global ARTISTS, STATEMENT
+    msg = update.message
+    text = msg.text
+    for entity in msg.entities:
+            if entity['type'] == 'text_link':
+                offset = entity['offset']
+                length = entity['length']
+                artist = {
+                    "name": text[offset:offset+length],
+                    "url": entity['url']
+                }
+                ARTISTS.append(artist)
+    artists_str = ''
+    for a in ARTISTS:
+        artists_str += '[{}]({}) & '.format(a['name'], a['url'])
+    STATEMENT += '*Artist*: {}\n'.format(artists_str[:-3])
     update.message.reply_text('{}Album?'.format(STATEMENT), parse_mode=ParseMode.MARKDOWN)
 
     return ALBUM_S
@@ -305,7 +319,8 @@ def artist(bot, update):
 
 def album(bot, update):
     global ALBUM, ALBUM_URL, STATEMENT
-    [ALBUM, ALBUM_URL] = [x.strip() for x in update.message.text.split(',,')]
+    ALBUM = update.message.text
+    ALBUM_URL = update.message.entities[0]['url']
     STATEMENT += '*Album*: [{}]({})\n'.format(ALBUM, ALBUM_URL)
     update.message.reply_text('{}Genres?'.format(STATEMENT), parse_mode=ParseMode.MARKDOWN)
 
