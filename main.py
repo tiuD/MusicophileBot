@@ -278,8 +278,9 @@ def stats(bot, update):
 
 @restricted
 def new(bot, update):
-    global STATEMENT
+    global STATEMENT, ARTISTS
     STATEMENT = ''
+    ARTISTS = []
     update.message.reply_text(text='Song?')
 
     return SONG_S
@@ -311,7 +312,7 @@ def artist(bot, update):
     artists_str = ''
     for a in ARTISTS:
         artists_str += '[{}]({}) & '.format(a['name'], a['url'])
-    STATEMENT += '*Artist*: {}\n'.format(artists_str[:-3])
+    STATEMENT += '*Artist{}*: {}\n'.format('s' if (len(ARTISTS) > 1) else '', artists_str[:-3])
     update.message.reply_text('{}Album?'.format(STATEMENT), parse_mode=ParseMode.MARKDOWN)
 
     return ALBUM_S
