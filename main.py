@@ -178,6 +178,43 @@ def button(bot, update):
     bot.answer_callback_query(query.id, text='')
 
 
+def myvotes(bot, update):
+    msg = ''
+    user_id = update.message.chat.id
+    client = MongoClient('localhost', 27017)
+    db = client[config.DB_NAME]
+    votes = db['Votes'].find({"user_id": user_id})
+
+    index = 1
+    for vote in votes:
+        msg += '{}. [{}]({}): {}\n'.format(index, 
+            db['Songs'].find_one({"song_id": vote['song_id']})['name'],
+            'https://t.me/musicophileowl/{}'.format(vote['song_id']),
+            VOTE_EMOJIS[vote['vote']])
+        index += 1
+    
+    update.message.reply_text(msg, 
+            disable_web_page_preview=True,
+            parse_mode=ParseMode.MARKDOWN)
+        
+
+def rand(bot, update, args):
+    client = MongoClient('localhost', 27017)
+    db = client[config.DB_NAME]
+    if (len(args) > 0):
+        user_genres = ['#{}'.format(x.replace(',', '').replace('#', '')) for x in args]
+        songs = db['Songs'].find({"genres": {"$all": user_genres}})
+    else:
+        songs = db['Songs'].find({})
+    
+    rand_song = songs[random.randint(0, songs.count()-1)]
+    update.message.reply_text('[{}]({})'.format(
+        rand_song['name'],
+        'https://t.me/musicophileowl/{}'.format(rand_song['song_id'])
+    ), ParseMode.MARKDOWN)
+
+
+
 def top(bot, update, args):
     text = ''
     client = MongoClient('localhost', 27017)
@@ -245,7 +282,6 @@ def top(bot, update, args):
 
 
 
-@restricted
 def stats(bot, update):
     try:
         hashtags_count = 0
@@ -403,6 +439,8 @@ def main():
 
     dispatcher.add_handler(CommandHandler('start', start))
     dispatcher.add_handler(CommandHandler('stats', stats))
+    dispatcher.add_handler(CommandHandler('myvotes', myvotes))
+    dispatcher.add_handler(CommandHandler('random', rand, pass_args=True))
     dispatcher.add_handler(CommandHandler('top', top, pass_args=True))
     dispatcher.add_handler(conv_handler)
     dispatcher.add_handler(CallbackQueryHandler(button))
