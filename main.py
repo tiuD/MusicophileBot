@@ -32,14 +32,6 @@ CONFIRM_KEYBOARD = [
         InlineKeyboardButton('cancel', callback_data='cancel')
     ]
 ]
-VOTE_KEYBOARD = [
-    [
-        InlineKeyboardButton('♥️', callback_data='heart'),
-        InlineKeyboardButton('👍🏼', callback_data='like'),
-        InlineKeyboardButton('👎🏼', callback_data='dislike'),
-        InlineKeyboardButton('💩', callback_data='poop')
-    ]
-]
 
 
 def restricted(func): 
@@ -172,6 +164,11 @@ def button(bot, update):
             like = res['votes']['like']
             dislike = res['votes']['dislike']
             poop = res['votes']['poop']
+            song_id = query.message.message_id - 1 # for tweet button
+            tweet = 'https://twitter.com/intent/tweet?text=🎧 {}\n{}'.format(
+                urllib.parse.quote(CAPTION.encode('utf-8')),
+                'https://t.me/musicophileowl/{}'.format(song_id)
+            )
 
             NEW_KEYBOARD = [
                 [
@@ -179,6 +176,9 @@ def button(bot, update):
                     InlineKeyboardButton('👍🏼 {}'.format((like if (like > 0) else '')), callback_data='like'),
                     InlineKeyboardButton('👎🏼 {}'.format((dislike if (dislike > 0) else '')), callback_data='dislike'),
                     InlineKeyboardButton('💩 {}'.format((poop if (poop > 0) else '')), callback_data='poop')
+                ], 
+                [
+                    InlineKeyboardButton('Tweet 🐦', url=tweet)   
                 ]
             ]
 
@@ -404,6 +404,14 @@ def file(bot, update):
         update.message.reply_text('You forgot to add caption url!')
     else:
         try:
+            keyboard = [
+                [
+                    InlineKeyboardButton('♥️', callback_data='heart'),
+                    InlineKeyboardButton('👍🏼', callback_data='like'),
+                    InlineKeyboardButton('👎🏼', callback_data='dislike'),
+                    InlineKeyboardButton('💩', callback_data='poop')
+                ]
+            ]
             FILE_ID = update.message.audio.file_id
             CAPTION = update.message.caption
             caption_words = CAPTION.split(' ')
@@ -421,7 +429,7 @@ def file(bot, update):
             update.message.reply_audio(audio=FILE_ID, 
                         caption=CAPTION_READY,
                         parse_mode=ParseMode.MARKDOWN,
-                        reply_markup=InlineKeyboardMarkup(VOTE_KEYBOARD))
+                        reply_markup=InlineKeyboardMarkup(keyboard))
             update.message.reply_text('Is this good?', 
                                     reply_markup=InlineKeyboardMarkup(CONFIRM_KEYBOARD))
         except Exception as e:
