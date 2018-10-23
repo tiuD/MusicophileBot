@@ -1,4 +1,4 @@
-import sys, config, random, traceback
+import sys, config, random, traceback, urllib.parse
 from pymongo import MongoClient
 from uuid import uuid4
 from functools import wraps
@@ -62,15 +62,30 @@ def button(bot, update):
 
     if (query.data == 'send'):
         try: 
-            bot.send_message(chat_id=CHANNEL_ID, text=STATEMENT, parse_mode=ParseMode.MARKDOWN)
-            sent = bot.send_audio(chat_id=CHANNEL_ID, 
+            sent_msg = bot.send_message(chat_id=CHANNEL_ID, text=STATEMENT, parse_mode=ParseMode.MARKDOWN)
+            tweet = 'https://twitter.com/intent/tweet?text=🎧 {}\n{}'.format(
+                urllib.parse.quote(CAPTION.encode('utf-8')),
+                'https://t.me/musicophileowl/{}'.format(sent_msg.message_id)
+            )
+            keyboard = [
+                [
+                    InlineKeyboardButton('♥️', callback_data='heart'),
+                    InlineKeyboardButton('👍🏼', callback_data='like'),
+                    InlineKeyboardButton('👎🏼', callback_data='dislike'),
+                    InlineKeyboardButton('💩', callback_data='poop')
+                ],
+                [
+                    InlineKeyboardButton('Tweet 🐦', url=tweet)
+                ]
+            ]
+            sent_song = bot.send_audio(chat_id=CHANNEL_ID, 
                         audio=FILE_ID, 
                         caption=CAPTION_READY,
                         parse_mode=ParseMode.MARKDOWN,
-                        reply_markup=InlineKeyboardMarkup(VOTE_KEYBOARD))
+                        reply_markup=InlineKeyboardMarkup(keyboard))
 
             song_json = {
-                "song_id": sent.message_id,
+                "song_id": sent_song.message_id,
                 "name": SONG,
                 "name_url": SONG_URL,
                 "artists": ARTISTS,
@@ -96,7 +111,8 @@ def button(bot, update):
                                   chat_id=query.message.chat_id,
                                   message_id=query.message.message_id)
         except Exception as e:
-            traceback.print_tb(e.__traceback__)
+            # traceback.print_tb(e.__traceback__)
+            print(e)
     elif (query.data == 'cancel'):
         bot.edit_message_text(text="Oh 😮 OK then 😬 I'll try to forget about it.",
                               chat_id=query.message.chat_id,
