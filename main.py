@@ -1,4 +1,4 @@
-import sys, config, random, traceback, urllib.parse
+import sys, config, random, traceback, urllib.parse, re, calendar
 from pymongo import MongoClient
 from uuid import uuid4
 from functools import wraps
@@ -12,6 +12,7 @@ InlineQueryResultAudio, InlineQueryResultArticle, InputTextMessageContent)
 TOKEN = ''
 CHANNEL_ID = ''
 ADMINS = [config.ADMIN_1, config.ADMIN_2]
+PUBLISH_TEXT = ''
 
 SONG_S, ARTIST_S, ALBUM_S, GENRES_S, RELEASED_S, FILE_S = range(6)
 SONG, SONG_URL, ALBUM, ALBUM_URL, FILE_ID, CAPTION, CAPTION_URL = [''] * 7
@@ -102,9 +103,23 @@ def button(bot, update):
             bot.edit_message_text(text="Done 😌",
                                   chat_id=query.message.chat_id,
                                   message_id=query.message.message_id)
+            return ConversationHandler.END                      
         except Exception as e:
             # traceback.print_tb(e.__traceback__)
             print(e)
+    elif (query.data == 'publish'):
+        bot.send_message(
+            chat_id=CHANNEL_ID, 
+            text=PUBLISH_TEXT, 
+            parse_mode=ParseMode.MARKDOWN,
+            disable_web_page_preview=True
+        )
+        bot.edit_message_text(
+            text="Done 😌",
+            chat_id=query.message.chat_id,
+            message_id=query.message.message_id
+        )
+
     elif (query.data == 'cancel'):
         bot.edit_message_text(text="Oh 😮 OK then 😬 I'll try to forget about it.",
                               chat_id=query.message.chat_id,
@@ -229,6 +244,67 @@ def rand(bot, update, args):
         'https://t.me/musicophileowl/{}'.format(rand_song['song_id'])
     ), ParseMode.MARKDOWN)
 
+@restricted
+def publish(bot, update, args):
+    global PUBLISH_TEXT
+    try:
+        client = MongoClient('localhost', 27017)
+        db = client[config.DB_NAME]
+        argument = ' '.join(args)
+        if(argument == 'top songs last_month'):
+            now = datetime.now()
+            year = now.year
+            month = now.month
+
+            PUBLISH_TEXT = 'Top Songs of _{}_\n'.format(calendar.month_name[month])
+            regx = re.compile("^{}-{}-(.*)$".format(year, month))
+
+            scores = {}
+
+            songs = db['Songs'].find({"date": regx})
+
+            for song in songs:
+                score = (
+                        (song['votes']['heart'] * 2) + 
+                        (song['votes']['like']) + 
+                        (song['votes']['dislike'] * (-1)) + 
+                        (song['votes']['poop'] * (-2))
+                        )
+                scores[song['name']] = (song['song_id'], score, song['votes'])
+            
+            top_songs = sorted(scores.items(), key=lambda x:x[1][1], reverse=True)
+
+            i = 0
+            while i < 10:
+                song = top_songs[i] 
+                heart = song[1][2]['heart']
+                like = song[1][2]['like']
+                dislike = song[1][2]['dislike']
+                poop = song[1][2]['poop']
+
+                PUBLISH_TEXT += '{}. [{}](https://t.me/musicophileowl/{}): {}{}{}{}{}{}{}{}{}\n'.format(
+                        i+1, song[0], song[1][0],
+                        VOTE_EMOJIS['heart'] if (heart > 0) else '', '{} '.format(heart) if(heart > 0) else '',
+                        VOTE_EMOJIS['like'] if (like > 0) else '', '{} '.format(like) if(like > 0) else '',
+                        VOTE_EMOJIS['dislike'] if (dislike > 0) else '', '{} '.format(dislike) if(dislike > 0) else '',
+                        VOTE_EMOJIS['poop'] if (poop > 0) else '', '{} '.format(poop) if(poop > 0) else '',
+                        'no votes yet' if((heart + like + dislike + poop) == 0) else ''
+                    )
+                i += 1
+            
+            keyboard = [
+                [
+                    InlineKeyboardButton('publish', callback_data='publish'),
+                    InlineKeyboardButton('cancel', callback_data='cancel')
+                ]
+            ]
+            
+            update.message.reply_text(PUBLISH_TEXT, 
+                                    parse_mode=ParseMode.MARKDOWN, 
+                                    disable_web_page_preview=True,
+                                    reply_markup=InlineKeyboardMarkup(keyboard))
+    except Exception as e:
+        traceback.print_tb(e.__traceback__)
 
 
 def top(bot, update, args):
@@ -465,6 +541,7 @@ def main():
     dispatcher.add_handler(CommandHandler('stats', stats))
     dispatcher.add_handler(CommandHandler('myvotes', myvotes))
     dispatcher.add_handler(CommandHandler('random', rand, pass_args=True))
+    dispatcher.add_handler(CommandHandler('publish', publish, pass_args=True))
     dispatcher.add_handler(CommandHandler('top', top, pass_args=True))
     dispatcher.add_handler(conv_handler)
     dispatcher.add_handler(CallbackQueryHandler(button))
