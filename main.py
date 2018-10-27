@@ -105,8 +105,8 @@ def button(bot, update):
                                   message_id=query.message.message_id)
             return ConversationHandler.END                      
         except Exception as e:
-            # traceback.print_tb(e.__traceback__)
-            print(e)
+            traceback.print_tb(e.__traceback__)
+            # print(e)
     elif (query.data == 'publish'):
         bot.send_message(
             chat_id=CHANNEL_ID, 
@@ -180,8 +180,9 @@ def button(bot, update):
             dislike = res['votes']['dislike']
             poop = res['votes']['poop']
             song_id = query.message.message_id - 1 # for tweet button
+            caption = query.message.caption
             tweet = 'https://twitter.com/intent/tweet?text=🎧 {}\n{}'.format(
-                urllib.parse.quote(CAPTION.encode('utf-8')),
+                urllib.parse.quote(caption.encode('utf-8')),
                 'https://t.me/musicophileowl/{}'.format(song_id)
             )
 
@@ -202,7 +203,7 @@ def button(bot, update):
                                           reply_markup=InlineKeyboardMarkup(NEW_KEYBOARD))
 
         except Exception as e:
-            print(e)
+            traceback.print_tb(e.__traceback__)
         finally: 
             client.close()
 
