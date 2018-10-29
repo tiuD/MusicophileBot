@@ -211,23 +211,26 @@ def button(bot, update):
 
 
 def myvotes(bot, update):
-    msg = ''
-    user_id = update.message.chat.id
-    client = MongoClient('localhost', 27017)
-    db = client[config.DB_NAME]
-    votes = db['Votes'].find({"user_id": user_id})
+    try:
+        msg = ''
+        user_id = update.message.chat.id
+        client = MongoClient('localhost', 27017)
+        db = client[config.DB_NAME]
+        votes = db['Votes'].find({"user_id": user_id})
 
-    index = 1
-    for vote in votes:
-        msg += '{}. [{}]({}): {}\n'.format(index, 
-            db['Songs'].find_one({"song_id": vote['song_id']})['name'],
-            'https://t.me/musicophileowl/{}'.format(vote['song_id']),
-            VOTE_EMOJIS[vote['vote']])
-        index += 1
-    
-    update.message.reply_text(msg, 
-            disable_web_page_preview=True,
-            parse_mode=ParseMode.MARKDOWN)
+        index = 1
+        for vote in votes:
+            msg += '{}. [{}]({}): {}\n'.format(index, 
+                db['Songs'].find_one({"song_id": vote['song_id']})['name'],
+                'https://t.me/musicophileowl/{}'.format(vote['song_id']),
+                VOTE_EMOJIS[vote['vote']])
+            index += 1
+        
+        update.message.reply_text(msg, 
+                disable_web_page_preview=True,
+                parse_mode=ParseMode.MARKDOWN)
+    except Exception as e:
+        traceback.print_tb(e.__traceback__)
         
 
 def rand(bot, update, args):
