@@ -230,7 +230,7 @@ def myvotes(bot, update):
                 disable_web_page_preview=True,
                 parse_mode=ParseMode.MARKDOWN)
     except Exception as e:
-        traceback.print_tb(e.__traceback__)
+        print(e)
         
 
 def rand(bot, update, args):
