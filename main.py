@@ -234,27 +234,36 @@ def myvotes(bot, update):
         
 
 def rand(bot, update, args):
-    client = MongoClient('localhost', 27017)
-    db = client[config.DB_NAME]
-    user_id = update.message.chat.id
-    if (len(args) > 0):
-        user_genres = ['#{}'.format(x.replace(',', '').replace('#', '')) for x in args]
-        songs = db['Songs'].find({"genres": {"$all": user_genres}})
-    else:
-        songs = db['Songs'].find({})
-    
-    rand_song = songs[random.randint(0, songs.count()-1)]
-    user_vote = db['Votes'].find_one(
-        {
-            "user_id": user_id,
-            "song_id": rand_song['song_id']
-        }
-    )
-    update.message.reply_text('[{}]({}){}'.format(
-        rand_song['name'],
-        'https://t.me/musicophileowl/{}'.format(rand_song['song_id']),
-        ('\nYour vote: {}'.format(VOTE_EMOJIS[user_vote['vote']]) if user_vote else '')
-    ), ParseMode.MARKDOWN)
+    try:
+        client = MongoClient('localhost', 27017)
+        db = client[config.DB_NAME]
+        user_id = update.message.chat.id
+        if (len(args) > 0):
+            user_genres = ['#{}'.format(x.replace(',', '').replace('#', '')) for x in args]
+            songs = db['Songs'].find({"genres": {"$all": user_genres}})
+        else:
+            songs = db['Songs'].find({})
+        
+        rand_song = songs[random.randint(0, songs.count()-1)]
+        user_vote = db['Votes'].find_one(
+            {
+                "user_id": user_id,
+                "song_id": rand_song['song_id']
+            }
+        )
+        # update.message.reply_text('[{}]({}){}'.format(
+        #     rand_song['name'],
+        #     'https://t.me/musicophileowl/{}'.format(rand_song['song_id']),
+        #     ('\nYour vote: {}'.format(VOTE_EMOJIS[user_vote['vote']]) if user_vote else '')
+        # ), ParseMode.MARKDOWN)
+
+        bot.send_audio(
+            chat_id=update.message.chat.id,
+            audio='https://t.me/musicophileowl/{}'.format(rand_song['song_id']),
+            caption=('\nYour vote: {}'.format(VOTE_EMOJIS[user_vote['vote']]) if user_vote else '')
+        )
+    except Exception as e:
+        print(e)
 
 @restricted
 def publish(bot, update, args):
