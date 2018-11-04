@@ -285,9 +285,11 @@ def publish(bot, update, args):
                 scores[song['name']] = (song['song_id'], score, song['votes'])
             
             top_songs = sorted(scores.items(), key=lambda x:x[1][1], reverse=True)
+            length = len(top_songs)
 
             i = 0
-            while i < 10:
+            count = 10 if length >= 10 else length
+            while i < count:
                 song = top_songs[i] 
                 heart = song[1][2]['heart']
                 like = song[1][2]['like']
