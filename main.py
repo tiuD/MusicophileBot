@@ -326,6 +326,59 @@ def publish(bot, update, args):
                                     parse_mode=ParseMode.MARKDOWN, 
                                     disable_web_page_preview=True,
                                     reply_markup=InlineKeyboardMarkup(keyboard))
+        elif(argument == 'top songs last_year'):
+            now = datetime.now()
+            year = now.year
+
+            PUBLISH_TEXT = 'Top Songs posted in _{}_\n'.format(year)
+            regx = re.compile("^{}-(.*)-(.*)$".format(year))
+
+            scores = {}
+
+            songs = db['Songs'].find({"date": regx})
+
+            for song in songs:
+                score = (
+                        (song['votes']['heart'] * 2) + 
+                        (song['votes']['like']) + 
+                        (song['votes']['dislike'] * (-1)) + 
+                        (song['votes']['poop'] * (-2))
+                        )
+                scores[song['name']] = (song['song_id'], score, song['votes'])
+            
+            top_songs = sorted(scores.items(), key=lambda x:x[1][1], reverse=True)
+            length = len(top_songs)
+
+            i = 0
+            count = 10 if length >= 10 else length
+            while i < count:
+                song = top_songs[i] 
+                heart = song[1][2]['heart']
+                like = song[1][2]['like']
+                dislike = song[1][2]['dislike']
+                poop = song[1][2]['poop']
+
+                PUBLISH_TEXT += '{}. [{}](https://t.me/musicophileowl/{}): {}{}{}{}{}{}{}{}{}\n'.format(
+                        i+1, song[0], song[1][0],
+                        VOTE_EMOJIS['heart'] if (heart > 0) else '', '{} '.format(heart) if(heart > 0) else '',
+                        VOTE_EMOJIS['like'] if (like > 0) else '', '{} '.format(like) if(like > 0) else '',
+                        VOTE_EMOJIS['dislike'] if (dislike > 0) else '', '{} '.format(dislike) if(dislike > 0) else '',
+                        VOTE_EMOJIS['poop'] if (poop > 0) else '', '{} '.format(poop) if(poop > 0) else '',
+                        'no votes yet' if((heart + like + dislike + poop) == 0) else ''
+                    )
+                i += 1
+            
+            keyboard = [
+                [
+                    InlineKeyboardButton('publish', callback_data='publish'),
+                    InlineKeyboardButton('cancel', callback_data='cancel')
+                ]
+            ]
+            
+            update.message.reply_text(PUBLISH_TEXT, 
+                                    parse_mode=ParseMode.MARKDOWN, 
+                                    disable_web_page_preview=True,
+                                    reply_markup=InlineKeyboardMarkup(keyboard))
     except Exception as e:
         traceback.print_tb(e.__traceback__)
 
