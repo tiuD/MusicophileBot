@@ -278,7 +278,7 @@ def publish(bot, update, args):
             month = now.month
 
             PUBLISH_TEXT = 'Top Songs posted in _{}_\n'.format(calendar.month_name[month])
-            regx = re.compile("^{}-{}-(.*)$".format(year, month))
+            regx = re.compile("^{}-{:02d}-(.*)$".format(year, month))
 
             scores = {}
 
