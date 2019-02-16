@@ -1,10 +1,6 @@
 # virtualenv files
 /venv
 
-# config files
-config.py
-config.pyc
-
 # temp files
 /temp
 /backup
