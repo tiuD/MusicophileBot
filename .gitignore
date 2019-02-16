@@ -14,3 +14,6 @@ config.pyc
 
 # py cache
 /__pycache__
+
+# initializations 
+bot.ini 
