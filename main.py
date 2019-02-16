@@ -1,4 +1,5 @@
-import sys, config, random, traceback, urllib.parse, re, calendar
+import sys, random, traceback, urllib.parse, re, calendar
+from config import config
 from pymongo import MongoClient
 from uuid import uuid4
 from functools import wraps
@@ -631,10 +632,10 @@ if __name__ == '__main__':
     mode = sys.argv[1] if(len(sys.argv) >= 2) else 'debug'
 
     if(mode == 'production'):
-        TOKEN = config.BOT_TOKEN
-        CHANNEL_ID = config.CHANNEL_ID
+        TOKEN = config('bot.ini', 'tokens')['main']
+        CHANNEL_ID = int(config('bot.ini', 'channel_ids')['main'])
     else:
-        TOKEN = config.DEV_TOKEN
-        CHANNEL_ID = config.DUMP_CHANNEL_ID
+        TOKEN = config('bot.ini', 'tokens')['dev']
+        CHANNEL_ID = int(config('bot.ini', 'channel_ids')['dev'])
 
     main()
