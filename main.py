@@ -12,7 +12,7 @@ InlineQueryResultAudio, InlineQueryResultArticle, InputTextMessageContent)
 
 TOKEN = ''
 CHANNEL_ID = ''
-ADMINS = [config.ADMIN_1, config.ADMIN_2]
+ADMINS = list(map(int, config('privileges.ini', 'admins').values()))
 PUBLISH_TEXT = ''
 
 SONG_S, ARTIST_S, ALBUM_S, GENRES_S, RELEASED_S, FILE_S = range(6)
