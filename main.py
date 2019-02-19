@@ -1,4 +1,4 @@
-import sys, random, traceback, urllib.parse, re, calendar
+import sys, random, traceback, urllib.parse, re, calendar, commands
 from config import config
 from pymongo import MongoClient
 from uuid import uuid4
@@ -45,10 +45,6 @@ def restricted(func):
             return
         return func(bot, update, *args, **kwargs)
     return wrapped
-
-
-def start(bot, update):
-    update.message.reply_text(text='hey')
 
 
 def button(bot, update):
@@ -614,7 +610,7 @@ def main():
         fallbacks=[CommandHandler('cancel', cancel)]
     )
 
-    dispatcher.add_handler(CommandHandler('start', start))
+    dispatcher.add_handler(CommandHandler('start', commands.start))
     dispatcher.add_handler(CommandHandler('stats', stats))
     dispatcher.add_handler(CommandHandler('myvotes', myvotes))
     dispatcher.add_handler(CommandHandler('random', rand, pass_args=True))
