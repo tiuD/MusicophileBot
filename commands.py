@@ -15,10 +15,11 @@ def start(bot, update):
 
 
 def stats(bot, update):
+    distinct_genres = set()
+    distinct_users = set()
+    stats_statement = ''
+
     try:
-        distinct_genres = set()
-        distinct_users = set()
-        stats_statement = ''
         client = MongoClient('localhost', 27017)
         db = client[config.DB_NAME]
         songs = db['Songs'].find({})
