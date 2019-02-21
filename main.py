@@ -7,7 +7,7 @@ from collections import Counter
 from datetime import datetime
 from telegram.ext import (Updater, Filters, 
 CommandHandler, MessageHandler, ConversationHandler, CallbackQueryHandler, InlineQueryHandler)
-from telegram import (ParseMode, InlineKeyboardButton, InlineKeyboardMarkup, 
+from telegram import (InlineKeyboardButton, InlineKeyboardMarkup, 
 InlineQueryResultAudio, InlineQueryResultArticle, InputTextMessageContent)
 
 TOKEN = ''
