@@ -27,8 +27,8 @@ def stats(bot, update):
         for song in songs:
             distinct_genres.update(song['genres'])
 
-        for v in votes:
-            distinct_users.update([v['user_id']])
+        for vote in votes:
+            distinct_users.update([vote'user_id']])
 
         stats_statement += 'Number of songs: {}\n'.format(songs.count())
         stats_statement += 'Number of genres: {}\n'.format(len(distinct_genres))
