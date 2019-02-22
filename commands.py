@@ -22,7 +22,7 @@ def stats(bot, update):
 
     try:
         client = MongoClient('localhost', 27017)
-        db = client[config.DB_NAME]
+        db = client[config('database.ini', 'mongodb')['db_name']]
         songs = db['Songs'].find({})
         votes = db['Votes'].find({})
 

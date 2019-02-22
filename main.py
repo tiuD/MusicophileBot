@@ -94,7 +94,7 @@ def button(bot, update):
             song_json['date'] = '{}'.format(datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
             
             client = MongoClient('localhost', 27017)
-            db = client[config.DB_NAME]
+            db = client[config('database.ini', 'mongodb')['db_name']]
             db['Songs'].insert_one(song_json)
 
             bot.edit_message_text(text="Done 😌",
@@ -127,7 +127,7 @@ def button(bot, update):
         inc_query["$inc"] = {"votes.{}".format(vote): 1}
         try: 
             client = MongoClient('localhost', 27017)
-            db = client[config.DB_NAME]
+            db = client[config('database.ini', 'mongodb')['db_name']]
             res = db['Votes'].find_one({
                 "song_id": query.message.message_id,
                 "user_id": update._effective_user.id
@@ -212,7 +212,7 @@ def myvotes(bot, update):
         msg = ''
         user_id = update.message.chat.id
         client = MongoClient('localhost', 27017)
-        db = client[config.DB_NAME]
+        db = client[config('database.ini', 'mongodb')['db_name']]
         votes = db['Votes'].find({"user_id": user_id})
 
         index = 1
@@ -233,7 +233,7 @@ def myvotes(bot, update):
 def rand(bot, update, args):
     try:
         client = MongoClient('localhost', 27017)
-        db = client[config.DB_NAME]
+        db = client[config('database.ini', 'mongodb')['db_name']]
         user_id = update.message.chat.id
         if (len(args) > 0):
             user_genres = ['#{}'.format(x.replace(',', '').replace('#', '')) for x in args]
@@ -267,7 +267,7 @@ def publish(bot, update, args):
     global PUBLISH_TEXT
     try:
         client = MongoClient('localhost', 27017)
-        db = client[config.DB_NAME]
+        db = client[config('database.ini', 'mongodb')['db_name']]
         argument = ' '.join(args)
         if(argument == 'top songs last_month'):
             now = datetime.now()
@@ -383,7 +383,7 @@ def publish(bot, update, args):
 def top(bot, update, args):
     text = ''
     client = MongoClient('localhost', 27017)
-    db = client[config.DB_NAME]
+    db = client[config('database.ini', 'mongodb')['db_name']]
     if (args[0] == 'genres'):
         hashtags = []
 
