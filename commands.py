@@ -1,5 +1,6 @@
 from telegram import ParseMode
 from pymongo import MongoClient
+from config import config
 
 def start(bot, update):
     statement = 'Hey! Welcome to *MusicophileBot*!\n'
