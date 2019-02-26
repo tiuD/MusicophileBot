@@ -8,7 +8,7 @@ from datetime import datetime
 from telegram.ext import (Updater, Filters, 
 CommandHandler, MessageHandler, ConversationHandler, CallbackQueryHandler, InlineQueryHandler)
 from telegram import (InlineKeyboardButton, InlineKeyboardMarkup, 
-InlineQueryResultAudio, InlineQueryResultArticle, InputTextMessageContent)
+InlineQueryResultAudio, InlineQueryResultArticle, InputTextMessageContent, ParseMode)
 
 TOKEN = ''
 CHANNEL_ID = ''
