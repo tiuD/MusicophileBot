@@ -244,11 +244,6 @@ def rand(bot, update, args):
                 "song_id": rand_song['song_id']
             }
         )
-        # update.message.reply_text('[{}]({}){}'.format(
-        #     rand_song['name'],
-        #     'https://t.me/musicophileowl/{}'.format(rand_song['song_id']),
-        #     ('\nYour vote: {}'.format(VOTE_EMOJIS[user_vote['vote']]) if user_vote else '')
-        # ), ParseMode.MARKDOWN)
 
         bot.send_audio(
             chat_id=update.message.chat.id,
