@@ -224,34 +224,7 @@ def myvotes(bot, update):
                 parse_mode=ParseMode.MARKDOWN)
     except Exception as e:
         print(e)
-        
 
-def rand(bot, update, args):
-    try:
-        client = MongoClient('localhost', 27017)
-        db = client[config('database.ini', 'mongodb')['db_name']]
-        user_id = update.message.chat.id
-        if (len(args) > 0):
-            user_genres = ['#{}'.format(x.replace(',', '').replace('#', '')) for x in args]
-            songs = db['Songs'].find({"genres": {"$all": user_genres}})
-        else:
-            songs = db['Songs'].find({})
-        
-        rand_song = songs[random.randint(0, songs.count()-1)]
-        user_vote = db['Votes'].find_one(
-            {
-                "user_id": user_id,
-                "song_id": rand_song['song_id']
-            }
-        )
-
-        bot.send_audio(
-            chat_id=update.message.chat.id,
-            audio='https://t.me/musicophileowl/{}'.format(rand_song['song_id']),
-            caption=('\nYour vote: {}'.format(VOTE_EMOJIS[user_vote['vote']]) if user_vote else '')
-        )
-    except Exception as e:
-        print(e)
 
 @restricted
 def publish(bot, update, args):
@@ -507,7 +480,7 @@ def main():
     dispatcher.add_handler(CommandHandler('start', commands.start))
     dispatcher.add_handler(CommandHandler('stats', commands.stats))
     dispatcher.add_handler(CommandHandler('myvotes', myvotes))
-    dispatcher.add_handler(CommandHandler('random', rand, pass_args=True))
+    dispatcher.add_handler(CommandHandler('random', commands.rand, pass_args=True))
     dispatcher.add_handler(CommandHandler('publish', publish, pass_args=True))
     dispatcher.add_handler(CommandHandler('top', commands.top, pass_args=True))
     dispatcher.add_handler(conv_handler)
