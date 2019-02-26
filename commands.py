@@ -75,11 +75,11 @@ def top(bot, update, args):
 
         for song in songs:
             score = (
-                     (song['votes']['heart'] * 2) +
-                     (song['votes']['like']) +
-                     (song['votes']['dislike'] * (-1)) +
-                     (song['votes']['poop'] * (-2))
-                    )
+                (song['votes']['heart'] * 2) +
+                (song['votes']['like']) +
+                (song['votes']['dislike'] * (-1)) +
+                (song['votes']['poop'] * (-2))
+            )
             scores[song['name']] = (song['song_id'], score, song['votes'])
 
         top_songs = sorted(scores.items(), key=lambda x:x[1][1], reverse=True)
@@ -98,13 +98,15 @@ def top(bot, update, args):
             poop = song[1][2]['poop']
 
             result += '{}. [{}](https://t.me/musicophileowl/{}): {}{}{}{}{}{}{}{}{}\n'.format(
-                    i+1, song[0], song[1][0],
-                    VOTE_EMOJIS['heart'] if (heart > 0) else '', '{} '.format(heart) if(heart > 0) else '',
-                    VOTE_EMOJIS['like'] if (like > 0) else '', '{} '.format(like) if(like > 0) else '',
-                    VOTE_EMOJIS['dislike'] if (dislike > 0) else '', '{} '.format(dislike) if(dislike > 0) else '',
-                    VOTE_EMOJIS['poop'] if (poop > 0) else '', '{} '.format(poop) if(poop > 0) else '',
-                    'no votes yet' if((heart + like + dislike + poop) == 0) else ''
-                )
+                i+1,
+                song[0],
+                song[1][0],
+                VOTE_EMOJIS['heart'] if (heart > 0) else '', '{} '.format(heart) if(heart > 0) else '',
+                VOTE_EMOJIS['like'] if (like > 0) else '', '{} '.format(like) if(like > 0) else '',
+                VOTE_EMOJIS['dislike'] if (dislike > 0) else '', '{} '.format(dislike) if(dislike > 0) else '',
+                VOTE_EMOJIS['poop'] if (poop > 0) else '', '{} '.format(poop) if(poop > 0) else '',
+                'no votes yet' if((heart + like + dislike + poop) == 0) else ''
+            )
             i += 1
 
         update.message.reply_text(
