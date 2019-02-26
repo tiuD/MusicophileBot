@@ -47,7 +47,7 @@ def stats(bot, update):
 
 
 def top(bot, update, args):
-    text = ''
+    result = ''
     client = MongoClient('localhost', 27017)
     db = client[config('database.ini', 'mongodb')['db_name']]
     if (args[0] == 'genres'):
@@ -64,10 +64,10 @@ def top(bot, update, args):
 
         i = 1
         for item in freq.most_common(count):
-            text += '{}. {}: {} time{}\n'.format(i, item[0], item[1], ('s' if (item[1] > 1) else ''))
+            result += '{}. {}: {} time{}\n'.format(i, item[0], item[1], ('s' if (item[1] > 1) else ''))
             i += 1
 
-        update.message.reply_text(text)
+        update.message.reply_text(result)
     elif (args[0] == 'songs'):
         scores = {}
 
@@ -97,7 +97,7 @@ def top(bot, update, args):
             dislike = song[1][2]['dislike']
             poop = song[1][2]['poop']
 
-            text += '{}. [{}](https://t.me/musicophileowl/{}): {}{}{}{}{}{}{}{}{}\n'.format(
+            result += '{}. [{}](https://t.me/musicophileowl/{}): {}{}{}{}{}{}{}{}{}\n'.format(
                     i+1, song[0], song[1][0],
                     VOTE_EMOJIS['heart'] if (heart > 0) else '', '{} '.format(heart) if(heart > 0) else '',
                     VOTE_EMOJIS['like'] if (like > 0) else '', '{} '.format(like) if(like > 0) else '',
@@ -107,6 +107,8 @@ def top(bot, update, args):
                 )
             i += 1
 
-        update.message.reply_text(text,
-                                  parse_mode=ParseMode.MARKDOWN,
-                                  disable_web_page_preview=True)
+        update.message.reply_text(
+            result,
+            parse_mode=ParseMode.MARKDOWN,
+            disable_web_page_preview=True
+        )
