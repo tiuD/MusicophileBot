@@ -91,7 +91,7 @@ def top(bot, update, args):
                     count = int(args[1])
                 else:
                     count = len(top_songs)
-            except Exception as e:
+            except Exception:
                 pass
 
         i = 0
