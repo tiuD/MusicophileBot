@@ -31,7 +31,7 @@ CONFIRM_KEYBOARD = [
 def restricted(func): 
     @wraps(func)
     def wrapped(bot, update, *args, **kwargs):
-        user_id = update.effective_user.id
+        user_id = update.callback_query.from_user.id
         if user_id not in ADMINS:
             print('Aunthorized access denied for {}'.format(user_id))
             return
@@ -121,10 +121,9 @@ def button(bot, update):
         try: 
             client = MongoClient('localhost', 27017)
             db = client[config('database.ini', 'mongodb')['db_name']]
-            print('{}'.format(update))
             res = db['Votes'].find_one({
                 "song_id": query.message.message_id,
-                "user_id": update._effective_user.id
+                "user_id": update.callback_query.from_user.id
             })
             if res is None:
                 db['Songs'].update_one(
@@ -133,7 +132,7 @@ def button(bot, update):
                 )
                 db['Votes'].insert_one({
                     "song_id": query.message.message_id,
-                    "user_id": update._effective_user.id,
+                    "user_id": update.callback_query.from_user.id,
                     "vote": vote
                 })
                 bot.answer_callback_query(query.id, text='You {} this.'.format(settings.vote_emojis.get(vote)))
@@ -146,7 +145,7 @@ def button(bot, update):
                 )
                 db['Votes'].delete_one({
                     "song_id": query.message.message_id,
-                    "user_id": update._effective_user.id,
+                    "user_id": update.callback_query.from_user.id,
                     "vote": res['vote']
                 })
                 if (res['vote'] != vote):
@@ -156,7 +155,7 @@ def button(bot, update):
                     )
                     db['Votes'].insert_one({
                         "song_id": query.message.message_id,
-                        "user_id": update._effective_user.id,
+                        "user_id": update.callback_query.from_user.id,
                         "vote": vote
                     })
                     bot.answer_callback_query(query.id, text='You {} this.'.format(settings.vote_emojis.get(vote)))
