@@ -1,4 +1,4 @@
-import random, re, settings
+import random, re, settings, traceback
 from telegram import ParseMode, InlineKeyboardButton, InlineKeyboardMarkup
 from pymongo import MongoClient
 from config import config
@@ -137,11 +137,15 @@ def rand(bot, update, args):
 
         bot.send_audio(
             chat_id=update.message.chat.id,
-            audio='https://t.me/musicophileowl/{}'.format(rand_song['song_id']),
+            audio='https://t.me/{}/{}'.format(
+                settings.channel_username,
+                rand_song['song_id']
+            ),
             caption=('\nYour vote: {}'.format(settings.vote_emojis[user_vote['vote']]) if user_vote else '')
         )
     except Exception as e:
         print(e)
+        traceback.print_tb(e.__traceback__)
 
 
 def post(bot, update):
