@@ -13,13 +13,6 @@ InlineQueryResultAudio, InlineQueryResultArticle, InputTextMessageContent, Parse
 ADMINS = list(map(int, config('privileges.ini', 'admins').values()))
 PUBLISH_TEXT = ''
 
-SONG, SONG_URL, ALBUM, ALBUM_URL, FILE_ID, CAPTION, CAPTION_URL = [''] * 7
-CAPTION_READY = ''
-ARTISTS = []
-GENRES = []
-RELEASED = 0
-STATEMENT = ''
-
 CONFIRM_KEYBOARD = [
     [
         InlineKeyboardButton('send', callback_data='send'),
@@ -46,7 +39,7 @@ def button(bot, update):
         try: 
             sent_msg = bot.send_message(chat_id=settings.channel_id, text=settings.statement, parse_mode=ParseMode.MARKDOWN)
             tweet = 'https://twitter.com/intent/tweet?text=🎧 {}\n{}'.format(
-                urllib.parse.quote(CAPTION.encode('utf-8')),
+                urllib.parse.quote(settings.caption_ready.encode('utf-8')),
                 'https://t.me/{}/{}'.format(
                     settings.channel_username,
                     sent_msg.message_id
@@ -71,13 +64,13 @@ def button(bot, update):
 
             song_json = {
                 "song_id": sent_song.message_id,
-                "name": SONG,
-                "name_url": SONG_URL,
-                "artists": ARTISTS,
-                "album": ALBUM,
-                "album_url": ALBUM_URL,
-                "genres": GENRES,
-                "released": RELEASED,
+                "name": settings.name,
+                "name_url": settings.name_url,
+                "artists": settings.artists,
+                "album": settings.album,
+                "album_url": settings.album_url,
+                "genres": settings.genres,
+                "released": settings.released,
                 "votes": {
                     "heart": 0,
                     "like": 0,
