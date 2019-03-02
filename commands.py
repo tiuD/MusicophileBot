@@ -84,10 +84,15 @@ def top(bot, update, args):
 
         top_songs = sorted(scores.items(), key=lambda x:x[1][1], reverse=True)
 
-        try:
-            count = (int(args[1]) if(int(args[1]) < len(top_songs)) else len(top_songs)) if(len(args) > 1) else 10
-        except Exception as e:
-            print(e)
+        count = len(top_songs) if(len(top_songs) < 10) else 10
+        if(len(args) >= 2):
+            try:
+                if(int(args[1]) < len(top_songs)):
+                    count = int(args[1])
+                else:
+                    count = len(top_songs)
+            except Exception as e:
+                pass
 
         i = 0
         while i < count:
