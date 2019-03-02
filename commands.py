@@ -97,9 +97,10 @@ def top(bot, update, args):
             dislike = song[1][2]['dislike']
             poop = song[1][2]['poop']
 
-            result += '{}. [{}](https://t.me/musicophileowl/{}): {}{}{}{}{}{}{}{}{}\n'.format(
+            result += '{}. [{}](https://t.me/{}/{}): {}{}{}{}{}{}{}{}{}\n'.format(
                 i+1,
                 song[0],
+                settings.channel_username,
                 song[1][0],
                 settings.vote_emojis['heart'] if (heart > 0) else '', '{} '.format(heart) if(heart > 0) else '',
                 settings.vote_emojis['like'] if (like > 0) else '', '{} '.format(like) if(like > 0) else '',

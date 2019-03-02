@@ -47,7 +47,10 @@ def button(bot, update):
             sent_msg = bot.send_message(chat_id=settings.channel_id, text=settings.statement, parse_mode=ParseMode.MARKDOWN)
             tweet = 'https://twitter.com/intent/tweet?text=🎧 {}\n{}'.format(
                 urllib.parse.quote(CAPTION.encode('utf-8')),
-                'https://t.me/musicophileowl/{}'.format(sent_msg.message_id)
+                'https://t.me/{}/{}'.format(
+                    settings.channel_username,
+                    sent_msg.message_id
+                )
             )
             keyboard = [
                 [
@@ -173,7 +176,10 @@ def button(bot, update):
             caption = query.message.caption
             tweet = 'https://twitter.com/intent/tweet?text=🎧 {}\n{}'.format(
                 urllib.parse.quote(caption.encode('utf-8')),
-                'https://t.me/musicophileowl/{}'.format(song_id)
+                'https://t.me/{}/{}'.format(
+                    settings.channel_username,
+                    song_id
+                )
             )
 
             NEW_KEYBOARD = [
@@ -212,7 +218,10 @@ def myvotes(bot, update):
         for vote in votes:
             msg += '{}. [{}]({}): {}\n'.format(index, 
                 db['Songs'].find_one({"song_id": vote['song_id']})['name'],
-                'https://t.me/musicophileowl/{}'.format(vote['song_id']),
+                'https://t.me/{}/{}'.format(
+                    settings.channel_username,
+                    vote['song_id']
+                ),
                 settings.vote_emojis[vote['vote']])
             index += 1
         
@@ -263,14 +272,17 @@ def publish(bot, update, args):
                 dislike = song[1][2]['dislike']
                 poop = song[1][2]['poop']
 
-                PUBLISH_TEXT += '{}. [{}](https://t.me/musicophileowl/{}): {}{}{}{}{}{}{}{}{}\n'.format(
-                        i+1, song[0], song[1][0],
-                        settings.vote_emojis['heart'] if (heart > 0) else '', '{} '.format(heart) if(heart > 0) else '',
-                        settings.vote_emojis['like'] if (like > 0) else '', '{} '.format(like) if(like > 0) else '',
-                        settings.vote_emojis['dislike'] if (dislike > 0) else '', '{} '.format(dislike) if(dislike > 0) else '',
-                        settings.vote_emojis['poop'] if (poop > 0) else '', '{} '.format(poop) if(poop > 0) else '',
-                        'no votes yet' if((heart + like + dislike + poop) == 0) else ''
-                    )
+                PUBLISH_TEXT += '{}. [{}](https://t.me/{}/{}): {}{}{}{}{}{}{}{}{}\n'.format(
+                    i+1,
+                    song[0],
+                    settings.channel_username,
+                    song[1][0],
+                    settings.vote_emojis['heart'] if (heart > 0) else '', '{} '.format(heart) if(heart > 0) else '',
+                    settings.vote_emojis['like'] if (like > 0) else '', '{} '.format(like) if(like > 0) else '',
+                    settings.vote_emojis['dislike'] if (dislike > 0) else '', '{} '.format(dislike) if(dislike > 0) else '',
+                    settings.vote_emojis['poop'] if (poop > 0) else '', '{} '.format(poop) if(poop > 0) else '',
+                    'no votes yet' if((heart + like + dislike + poop) == 0) else ''
+                )
                 i += 1
             
             keyboard = [
@@ -316,14 +328,17 @@ def publish(bot, update, args):
                 dislike = song[1][2]['dislike']
                 poop = song[1][2]['poop']
 
-                PUBLISH_TEXT += '{}. [{}](https://t.me/musicophileowl/{}): {}{}{}{}{}{}{}{}{}\n'.format(
-                        i+1, song[0], song[1][0],
-                        settings.vote_emojis['heart'] if (heart > 0) else '', '{} '.format(heart) if(heart > 0) else '',
-                        settings.vote_emojis['like'] if (like > 0) else '', '{} '.format(like) if(like > 0) else '',
-                        settings.vote_emojis['dislike'] if (dislike > 0) else '', '{} '.format(dislike) if(dislike > 0) else '',
-                        settings.vote_emojis['poop'] if (poop > 0) else '', '{} '.format(poop) if(poop > 0) else '',
-                        'no votes yet' if((heart + like + dislike + poop) == 0) else ''
-                    )
+                PUBLISH_TEXT += '{}. [{}](https://t.me/{}/{}): {}{}{}{}{}{}{}{}{}\n'.format(
+                    i+1,
+                    song[0],
+                    settings.channel_username,
+                    song[1][0],
+                    settings.vote_emojis['heart'] if (heart > 0) else '', '{} '.format(heart) if(heart > 0) else '',
+                    settings.vote_emojis['like'] if (like > 0) else '', '{} '.format(like) if(like > 0) else '',
+                    settings.vote_emojis['dislike'] if (dislike > 0) else '', '{} '.format(dislike) if(dislike > 0) else '',
+                    settings.vote_emojis['poop'] if (poop > 0) else '', '{} '.format(poop) if(poop > 0) else '',
+                    'no votes yet' if((heart + like + dislike + poop) == 0) else ''
+                )
                 i += 1
             
             keyboard = [
