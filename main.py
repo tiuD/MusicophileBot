@@ -1,22 +1,18 @@
-import sys, random, traceback, urllib.parse, re, calendar, commands
+import sys, random, traceback, urllib.parse, re, calendar, commands, settings
 from config import config
-from settings import VOTE_EMOJIS
 from pymongo import MongoClient
 from uuid import uuid4
 from functools import wraps
 from collections import Counter
 from datetime import datetime
 from telegram.ext import (Updater, Filters, 
-CommandHandler, MessageHandler, ConversationHandler, CallbackQueryHandler, InlineQueryHandler)
+CommandHandler, MessageHandler, CallbackQueryHandler, InlineQueryHandler)
 from telegram import (InlineKeyboardButton, InlineKeyboardMarkup, 
 InlineQueryResultAudio, InlineQueryResultArticle, InputTextMessageContent, ParseMode)
 
-TOKEN = ''
-CHANNEL_ID = ''
 ADMINS = list(map(int, config('privileges.ini', 'admins').values()))
 PUBLISH_TEXT = ''
 
-SONG_S, ARTIST_S, ALBUM_S, GENRES_S, RELEASED_S, FILE_S = range(6)
 SONG, SONG_URL, ALBUM, ALBUM_URL, FILE_ID, CAPTION, CAPTION_URL = [''] * 7
 CAPTION_READY = ''
 ARTISTS = []
@@ -48,7 +44,7 @@ def button(bot, update):
 
     if (query.data == 'send'):
         try: 
-            sent_msg = bot.send_message(chat_id=CHANNEL_ID, text=STATEMENT, parse_mode=ParseMode.MARKDOWN)
+            sent_msg = bot.send_message(chat_id=settings.channel_id, text=settings.statement, parse_mode=ParseMode.MARKDOWN)
             tweet = 'https://twitter.com/intent/tweet?text=🎧 {}\n{}'.format(
                 urllib.parse.quote(CAPTION.encode('utf-8')),
                 'https://t.me/musicophileowl/{}'.format(sent_msg.message_id)
@@ -64,9 +60,9 @@ def button(bot, update):
                     InlineKeyboardButton('Tweet 🐦', url=tweet)
                 ]
             ]
-            sent_song = bot.send_audio(chat_id=CHANNEL_ID, 
-                        audio=FILE_ID, 
-                        caption=CAPTION_READY,
+            sent_song = bot.send_audio(chat_id=settings.channel_id,
+                        audio=settings.file_id,
+                        caption=settings.caption_ready,
                         parse_mode=ParseMode.MARKDOWN,
                         reply_markup=InlineKeyboardMarkup(keyboard))
 
@@ -93,16 +89,17 @@ def button(bot, update):
             db = client[config('database.ini', 'mongodb')['db_name']]
             db['Songs'].insert_one(song_json)
 
-            bot.edit_message_text(text="Done 😌",
-                                  chat_id=query.message.chat_id,
-                                  message_id=query.message.message_id)
-            return ConversationHandler.END                      
+            bot.edit_message_text(
+                text="Done 😌",
+                chat_id=query.message.chat_id,
+                message_id=query.message.message_id
+            )
         except Exception as e:
             traceback.print_tb(e.__traceback__)
             # print(e)
     elif (query.data == 'publish'):
         bot.send_message(
-            chat_id=CHANNEL_ID, 
+            chat_id=settings.channel_id,
             text=PUBLISH_TEXT, 
             parse_mode=ParseMode.MARKDOWN,
             disable_web_page_preview=True
@@ -117,13 +114,14 @@ def button(bot, update):
         bot.edit_message_text(text="Oh 😮 OK then 😬 I'll try to forget about it.",
                               chat_id=query.message.chat_id,
                               message_id=query.message.message_id)
-    elif (query.data in list(VOTE_EMOJIS.keys())):
+    elif (query.data in list(settings.vote_emojis.keys())):
         vote = query.data
         inc_query = {}
         inc_query["$inc"] = {"votes.{}".format(vote): 1}
         try: 
             client = MongoClient('localhost', 27017)
             db = client[config('database.ini', 'mongodb')['db_name']]
+            print('{}'.format(update))
             res = db['Votes'].find_one({
                 "song_id": query.message.message_id,
                 "user_id": update._effective_user.id
@@ -138,7 +136,7 @@ def button(bot, update):
                     "user_id": update._effective_user.id,
                     "vote": vote
                 })
-                bot.answer_callback_query(query.id, text='You {} this.'.format(VOTE_EMOJIS.get(vote)))
+                bot.answer_callback_query(query.id, text='You {} this.'.format(settings.vote_emojis.get(vote)))
             else:
                 dec_query = {}
                 dec_query["$inc"] = {"votes.{}".format(res['vote']): -1}
@@ -161,9 +159,9 @@ def button(bot, update):
                         "user_id": update._effective_user.id,
                         "vote": vote
                     })
-                    bot.answer_callback_query(query.id, text='You {} this.'.format(VOTE_EMOJIS.get(vote)))
+                    bot.answer_callback_query(query.id, text='You {} this.'.format(settings.vote_emojis.get(vote)))
                 else:
-                    bot.answer_callback_query(query.id, text='You no longer {} this.'.format(VOTE_EMOJIS.get(vote)))
+                    bot.answer_callback_query(query.id, text='You no longer {} this.'.format(settings.vote_emojis.get(vote)))
             res = db['Songs'].find_one({
                 "song_id": query.message.message_id
             })
@@ -216,7 +214,7 @@ def myvotes(bot, update):
             msg += '{}. [{}]({}): {}\n'.format(index, 
                 db['Songs'].find_one({"song_id": vote['song_id']})['name'],
                 'https://t.me/musicophileowl/{}'.format(vote['song_id']),
-                VOTE_EMOJIS[vote['vote']])
+                settings.vote_emojis[vote['vote']])
             index += 1
         
         update.message.reply_text(msg, 
@@ -268,10 +266,10 @@ def publish(bot, update, args):
 
                 PUBLISH_TEXT += '{}. [{}](https://t.me/musicophileowl/{}): {}{}{}{}{}{}{}{}{}\n'.format(
                         i+1, song[0], song[1][0],
-                        VOTE_EMOJIS['heart'] if (heart > 0) else '', '{} '.format(heart) if(heart > 0) else '',
-                        VOTE_EMOJIS['like'] if (like > 0) else '', '{} '.format(like) if(like > 0) else '',
-                        VOTE_EMOJIS['dislike'] if (dislike > 0) else '', '{} '.format(dislike) if(dislike > 0) else '',
-                        VOTE_EMOJIS['poop'] if (poop > 0) else '', '{} '.format(poop) if(poop > 0) else '',
+                        settings.vote_emojis['heart'] if (heart > 0) else '', '{} '.format(heart) if(heart > 0) else '',
+                        settings.vote_emojis['like'] if (like > 0) else '', '{} '.format(like) if(like > 0) else '',
+                        settings.vote_emojis['dislike'] if (dislike > 0) else '', '{} '.format(dislike) if(dislike > 0) else '',
+                        settings.vote_emojis['poop'] if (poop > 0) else '', '{} '.format(poop) if(poop > 0) else '',
                         'no votes yet' if((heart + like + dislike + poop) == 0) else ''
                     )
                 i += 1
@@ -321,10 +319,10 @@ def publish(bot, update, args):
 
                 PUBLISH_TEXT += '{}. [{}](https://t.me/musicophileowl/{}): {}{}{}{}{}{}{}{}{}\n'.format(
                         i+1, song[0], song[1][0],
-                        VOTE_EMOJIS['heart'] if (heart > 0) else '', '{} '.format(heart) if(heart > 0) else '',
-                        VOTE_EMOJIS['like'] if (like > 0) else '', '{} '.format(like) if(like > 0) else '',
-                        VOTE_EMOJIS['dislike'] if (dislike > 0) else '', '{} '.format(dislike) if(dislike > 0) else '',
-                        VOTE_EMOJIS['poop'] if (poop > 0) else '', '{} '.format(poop) if(poop > 0) else '',
+                        settings.vote_emojis['heart'] if (heart > 0) else '', '{} '.format(heart) if(heart > 0) else '',
+                        settings.vote_emojis['like'] if (like > 0) else '', '{} '.format(like) if(like > 0) else '',
+                        settings.vote_emojis['dislike'] if (dislike > 0) else '', '{} '.format(dislike) if(dislike > 0) else '',
+                        settings.vote_emojis['poop'] if (poop > 0) else '', '{} '.format(poop) if(poop > 0) else '',
                         'no votes yet' if((heart + like + dislike + poop) == 0) else ''
                     )
                 i += 1
@@ -344,148 +342,19 @@ def publish(bot, update, args):
         traceback.print_tb(e.__traceback__)
 
 
-@restricted
-def new(bot, update):
-    global STATEMENT, ARTISTS
-    STATEMENT = ''
-    ARTISTS = []
-    update.message.reply_text(text='Song?')
-
-    return SONG_S
-
-
-def song(bot, update):
-    global SONG, SONG_URL, STATEMENT
-    SONG = update.message.text
-    SONG_URL = update.message.entities[0]['url']
-    STATEMENT += '*Song*: [{}]({})\n'.format(SONG, SONG_URL)
-    update.message.reply_text('{}Artist?'.format(STATEMENT), parse_mode=ParseMode.MARKDOWN)
-
-    return ARTIST_S
-
-
-def artist(bot, update):
-    global ARTISTS, STATEMENT
-    msg = update.message
-    text = msg.text
-    for entity in msg.entities:
-            if entity['type'] == 'text_link':
-                offset = entity['offset']
-                length = entity['length']
-                artist = {
-                    "name": text[offset:offset+length],
-                    "url": entity['url']
-                }
-                ARTISTS.append(artist)
-    artists_str = ''
-    for a in ARTISTS:
-        artists_str += '[{}]({}) & '.format(a['name'], a['url'])
-    STATEMENT += '*Artist{}*: {}\n'.format('s' if (len(ARTISTS) > 1) else '', artists_str[:-3])
-    update.message.reply_text('{}Album?'.format(STATEMENT), parse_mode=ParseMode.MARKDOWN)
-
-    return ALBUM_S
-
-
-def album(bot, update):
-    global ALBUM, ALBUM_URL, STATEMENT
-    ALBUM = update.message.text
-    ALBUM_URL = update.message.entities[0]['url']
-    STATEMENT += '*Album*: [{}]({})\n'.format(ALBUM, ALBUM_URL)
-    update.message.reply_text('{}Genres?'.format(STATEMENT), parse_mode=ParseMode.MARKDOWN)
-
-    return GENRES_S
-
-
-def genres(bot, update):
-    global GENRES, STATEMENT
-    GENRES = [x.strip() for x in update.message.text.split(',')]
-    STATEMENT += '*Genre{}*: {}\n'.format(('' if (len(GENRES) == 1) else 's'), ', '.join(GENRES))
-    update.message.reply_text('{}Released?'.format(STATEMENT), parse_mode=ParseMode.MARKDOWN)
-
-    return RELEASED_S
-
-
-def released(bot, update):
-    global RELEASED, STATEMENT
-    RELEASED = update.message.text
-    STATEMENT += '*Released*: {}'.format(RELEASED)
-    update.message.reply_text(STATEMENT, parse_mode=ParseMode.MARKDOWN)
-
-    return FILE_S
-
-
-def file(bot, update):
-    global FILE_ID, CAPTION, CAPTION_URL, CAPTION_READY
-    if update.message.caption_entities is None:
-        update.message.reply_text('You forgot to add caption url!')
-    else:
-        try:
-            keyboard = [
-                [
-                    InlineKeyboardButton('♥️', callback_data='heart'),
-                    InlineKeyboardButton('👍🏼', callback_data='like'),
-                    InlineKeyboardButton('👎🏼', callback_data='dislike'),
-                    InlineKeyboardButton('💩', callback_data='poop')
-                ]
-            ]
-            FILE_ID = update.message.audio.file_id
-            CAPTION = update.message.caption
-            caption_words = CAPTION.split(' ')
-            random_word = random.choice(caption_words)
-            offset = CAPTION.find(random_word)
-            length = len(random_word)
-            CAPTION_READY = '{}[{}]({}){}'.format(
-                            CAPTION[: offset], 
-                            CAPTION[offset: (offset+length)],
-                            'https://t.me/musicophileowl',
-                            CAPTION[(offset+length):])
-            update.message.reply_text(STATEMENT, 
-                                    parse_mode=ParseMode.MARKDOWN)
-
-            update.message.reply_audio(audio=FILE_ID, 
-                        caption=CAPTION_READY,
-                        parse_mode=ParseMode.MARKDOWN,
-                        reply_markup=InlineKeyboardMarkup(keyboard))
-            update.message.reply_text('Is this good?', 
-                                    reply_markup=InlineKeyboardMarkup(CONFIRM_KEYBOARD))
-        except Exception as e:
-            traceback.print_tb(e.__traceback__)
-    
-    return ConversationHandler.END
-
-
-def cancel(bot, update):
-    update.message.reply_text('Oh no!')
-
-    return ConversationHandler.END
-
-
 def main():
-    updater = Updater(token=TOKEN)
+    updater = Updater(token=settings.token)
 
     dispatcher = updater.dispatcher
 
-    conv_handler = ConversationHandler(
-        entry_points=[CommandHandler('new', new)],
-        states={
-            SONG_S: [MessageHandler(Filters.text, song)],
-            ARTIST_S: [MessageHandler(Filters.text, artist)],
-            ALBUM_S: [MessageHandler(Filters.text, album)],
-            GENRES_S: [MessageHandler(Filters.text, genres)],
-            RELEASED_S: [MessageHandler(Filters.text, released)]
-        },
-        fallbacks=[CommandHandler('cancel', cancel)]
-    )
-
     dispatcher.add_handler(CommandHandler('start', commands.start))
+    dispatcher.add_handler(MessageHandler(Filters.audio, commands.post))
     dispatcher.add_handler(CommandHandler('stats', commands.stats))
     dispatcher.add_handler(CommandHandler('myvotes', myvotes))
     dispatcher.add_handler(CommandHandler('random', commands.rand, pass_args=True))
     dispatcher.add_handler(CommandHandler('publish', publish, pass_args=True))
     dispatcher.add_handler(CommandHandler('top', commands.top, pass_args=True))
-    dispatcher.add_handler(conv_handler)
     dispatcher.add_handler(CallbackQueryHandler(button))
-    dispatcher.add_handler(MessageHandler(Filters.audio, file))
 
     updater.start_polling()
     updater.idle()
@@ -495,10 +364,12 @@ if __name__ == '__main__':
     mode = sys.argv[1] if(len(sys.argv) >= 2) else 'debug'
 
     if(mode == 'production'):
-        TOKEN = config('bot.ini', 'tokens')['main']
-        CHANNEL_ID = int(config('bot.ini', 'channel_ids')['main'])
+        settings.token = config('bot.ini', 'tokens')['main']
+        settings.channel_id = int(config('bot.ini', 'channel')['main'])
+        settings.channel_username = config('bot.ini', 'channel')['main_username']
     else:
-        TOKEN = config('bot.ini', 'tokens')['dev']
-        CHANNEL_ID = int(config('bot.ini', 'channel_ids')['dev'])
+        settings.token = config('bot.ini', 'tokens')['dev']
+        settings.channel_id = int(config('bot.ini', 'channel')['dev'])
+        settings.channel_username = config('bot.ini', 'channel')['dev_username']
 
     main()
