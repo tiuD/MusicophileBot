@@ -31,3 +31,4 @@ name, name_url, album, album_url, credit, statement, file_id, caption_ready = ['
 artists = []
 genres = []
 released = 0
+admins = []
