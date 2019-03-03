@@ -3,8 +3,25 @@ from telegram import ParseMode, InlineKeyboardButton, InlineKeyboardMarkup
 from pymongo import MongoClient
 from config import config
 from collections import Counter
+from functools import wraps
+
+def restricted(func):
+    @wraps(func)
+    def wrapped(bot, update, *args, **kwargs):
+        try:
+            user_id = update.message.chat.id
+        except Exception as e:
+            print(e)
+            traceback.print_tb(e.__traceback__)
+        if user_id not in settings.admins:
+            print('Aunthorized access denied for {}'.format(user_id))
+            return
+        return func(bot, update, *args, **kwargs)
+    return wrapped
+
 
 def start(bot, update):
+    print(settings.admins)
     statement = 'Hey! Welcome to *MusicophileBot*!\n'
     statement += "You can use bot to listen to random songs, see the songs you've voted, and more.\n"
     statement += 'To see the commands, simply type /commands.\n'
@@ -154,6 +171,7 @@ def rand(bot, update, args):
         traceback.print_tb(e.__traceback__)
 
 
+@restricted
 def post(bot, update):
     caption = update.message.caption
 

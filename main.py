@@ -10,7 +10,6 @@ CommandHandler, MessageHandler, CallbackQueryHandler, InlineQueryHandler)
 from telegram import (InlineKeyboardButton, InlineKeyboardMarkup, 
 InlineQueryResultAudio, InlineQueryResultArticle, InputTextMessageContent, ParseMode)
 
-ADMINS = list(map(int, config('privileges.ini', 'admins').values()))
 PUBLISH_TEXT = ''
 
 CONFIRM_KEYBOARD = [
@@ -24,8 +23,8 @@ CONFIRM_KEYBOARD = [
 def restricted(func): 
     @wraps(func)
     def wrapped(bot, update, *args, **kwargs):
-        user_id = update.callback_query.from_user.id
-        if user_id not in ADMINS:
+        user_id = update.message.chat.id
+        if user_id not in settings.admins:
             print('Aunthorized access denied for {}'.format(user_id))
             return
         return func(bot, update, *args, **kwargs)
@@ -369,6 +368,8 @@ def main():
 
 if __name__ == '__main__':
     mode = sys.argv[1] if(len(sys.argv) >= 2) else 'debug'
+
+    settings.admins = list(map(int, config('privileges.ini', 'admins').values()))
 
     if(mode == 'production'):
         settings.token = config('bot.ini', 'tokens')['main']
