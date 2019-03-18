@@ -1,4 +1,5 @@
-import sys, random, traceback, urllib.parse, re, calendar, commands, settings
+import random, traceback, urllib.parse, re, calendar, commands, settings
+import os, sys
 from config import config
 from pymongo import MongoClient
 from uuid import uuid4
@@ -35,32 +36,36 @@ def button(bot, update):
     query = update.callback_query
 
     if (query.data == 'send'):
-        try: 
-            sent_msg = bot.send_message(chat_id=settings.channel_id, text=settings.statement, parse_mode=ParseMode.MARKDOWN)
-            tweet = 'https://twitter.com/intent/tweet?text=🎧 {}\n{}'.format(
-                urllib.parse.quote(settings.caption_ready.encode('utf-8')),
-                'https://t.me/{}/{}'.format(
-                    settings.channel_username,
-                    sent_msg.message_id
-                )
-            )
+        try:
             keyboard = [
                 [
                     InlineKeyboardButton('♥️', callback_data='heart'),
                     InlineKeyboardButton('👍🏼', callback_data='like'),
                     InlineKeyboardButton('👎🏼', callback_data='dislike'),
                     InlineKeyboardButton('💩', callback_data='poop')
-                ],
-                [
-                    InlineKeyboardButton('Tweet 🐦', url=tweet)
                 ]
-            ]
-            sent_song = bot.send_audio(chat_id=settings.channel_id,
-                        audio=settings.file_id,
-                        caption=settings.caption_ready,
-                        parse_mode=ParseMode.MARKDOWN,
-                        reply_markup=InlineKeyboardMarkup(keyboard))
-
+            ] 
+            bot.send_message(
+                chat_id=settings.channel_id,
+                text=settings.statement,
+                parse_mode=ParseMode.MARKDOWN
+            )
+            bot.send_voice(
+                chat_id=settings.channel_id,
+                voice=open('song.ogg', 'rb'),
+                caption=settings.caption_ready,
+                parse_mode=ParseMode.MARKDOWN,
+                timeout=1000
+            )
+            sent_song = bot.send_audio(
+                chat_id=settings.channel_id,
+                audio=settings.file_id,
+                caption=f'🎧 @{settings.channel_username} 🦉',
+                parse_mode=ParseMode.MARKDOWN,
+                reply_markup=InlineKeyboardMarkup(keyboard)
+            )
+            os.remove('song.mp3')
+            os.remove('song.ogg')
             song_json = {
                 "song_id": sent_song.message_id,
                 "name": settings.name,
@@ -164,15 +169,6 @@ def button(bot, update):
             like = res['votes']['like']
             dislike = res['votes']['dislike']
             poop = res['votes']['poop']
-            song_id = query.message.message_id - 1 # for tweet button
-            caption = query.message.caption
-            tweet = 'https://twitter.com/intent/tweet?text=🎧 {}\n{}'.format(
-                urllib.parse.quote(caption.encode('utf-8')),
-                'https://t.me/{}/{}'.format(
-                    settings.channel_username,
-                    song_id
-                )
-            )
 
             NEW_KEYBOARD = [
                 [
@@ -180,15 +176,14 @@ def button(bot, update):
                     InlineKeyboardButton('👍🏼 {}'.format((like if (like > 0) else '')), callback_data='like'),
                     InlineKeyboardButton('👎🏼 {}'.format((dislike if (dislike > 0) else '')), callback_data='dislike'),
                     InlineKeyboardButton('💩 {}'.format((poop if (poop > 0) else '')), callback_data='poop')
-                ], 
-                [
-                    InlineKeyboardButton('Tweet 🐦', url=tweet)   
                 ]
             ]
 
-            bot.edit_message_reply_markup(chat_id=query.message.chat_id,
-                                          message_id=query.message.message_id,
-                                          reply_markup=InlineKeyboardMarkup(NEW_KEYBOARD))
+            bot.edit_message_reply_markup(
+                chat_id=query.message.chat_id,
+                message_id=query.message.message_id,
+                reply_markup=InlineKeyboardMarkup(NEW_KEYBOARD)
+            )
 
         except Exception as e:
             traceback.print_tb(e.__traceback__)

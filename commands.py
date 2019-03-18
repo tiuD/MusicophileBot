@@ -1,4 +1,4 @@
-import random, re, settings, traceback
+import random, re, settings, traceback, audiotools
 from telegram import ParseMode, InlineKeyboardButton, InlineKeyboardMarkup
 from pymongo import MongoClient
 from config import config
@@ -173,80 +173,93 @@ def rand(bot, update, args):
 
 @restricted
 def post(bot, update):
-    caption = update.message.caption
+    try:
+        caption = update.message.caption
 
-    settings.artists = []
-    settings.genres = []
-    settings.statement = ''
-    artists_str = ''
-    song_caption = ''
+        settings.artists = []
+        settings.genres = []
+        settings.statement = ''
+        artists_str = ''
+        song_caption = ''
 
-    scr = re.compile(r'.*\"(.*)\".*', re.MULTILINE | re.DOTALL) # song_caption_regex
-    match = scr.match(caption)
-    if match:
-        song_caption = match.group(1)
+        scr = re.compile(r'.*\"(.*)\".*', re.MULTILINE | re.DOTALL) # song_caption_regex
+        match = scr.match(caption)
+        if match:
+            song_caption = match.group(1)
 
-        settings.file_id = update.message.audio.file_id
+            settings.file_id = update.message.audio.file_id
 
-        for entity in update.message.caption_entities:
-            offset = entity['offset']
-            length = entity['length']
-            text = caption[offset:(offset+length)]
+            for entity in update.message.caption_entities:
+                offset = entity['offset']
+                length = entity['length']
+                text = caption[offset:(offset+length)]
 
-            if entity['type'] == 'text_link':
-                url = entity['url']
-                if text[0] == '!':
-                    settings.name = text[1:]
-                    settings.name_url = url
-                elif text[0] == '@':
-                    artist = {
-                        "name": text[1:],
-                        "url": url
-                    }
-                    settings.artists.append(artist)
-                elif text[0] == '$':
-                    settings.album = text[1:]
-                    settings.album_url = url
-            elif entity['type'] == 'hashtag':
-                if text[1] == 'r':
-                    settings.released = int(text[2:])
-                else:
-                    settings.genres.append(text)
+                if entity['type'] == 'text_link':
+                    url = entity['url']
+                    if text[0] == '!':
+                        settings.name = text[1:]
+                        settings.name_url = url
+                    elif text[0] == '@':
+                        artist = {
+                            "name": text[1:],
+                            "url": url
+                        }
+                        settings.artists.append(artist)
+                    elif text[0] == '$':
+                        settings.album = text[1:]
+                        settings.album_url = url
+                elif entity['type'] == 'hashtag':
+                    if text[1] == 'r':
+                        settings.released = int(text[2:])
+                    elif text[1] == 's':
+                        audiotools.sample(bot, update, text[2:])
+                    else:
+                        settings.genres.append(text)
 
-        caption_words = song_caption.split(' ')
-        random_word = random.choice(caption_words)
-        offset = song_caption.find(random_word)
-        length = len(random_word)
+            caption_words = song_caption.split(' ')
+            random_word = random.choice(caption_words)
+            offset = song_caption.find(random_word)
+            length = len(random_word)
 
-        settings.caption_ready = '{}[{}]({}){}'.format(
-            song_caption[: offset],
-            song_caption[offset: (offset+length)],
-            'https://t.me/{}'.format(settings.channel_username),
-            song_caption[(offset+length):]
-        )
+            settings.caption_ready = '{}[{}]({}){}'.format(
+                song_caption[: offset],
+                song_caption[offset: (offset+length)],
+                'https://t.me/{}'.format(settings.channel_username),
+                song_caption[(offset+length):]
+            )
 
-        settings.statement += '*Song*: [{}]({})\n'.format(settings.name, settings.name_url)
+            settings.statement += '*Song*: [{}]({})\n'.format(settings.name, settings.name_url)
 
-        for a in settings.artists:
-            artists_str += '[{}]({}) & '.format(a['name'], a['url'])
-        settings.statement += '*Artist{}*: {}\n'.format('s' if (len(settings.artists) > 1) else '', artists_str[:-3])
-        settings.statement += '*Album*: [{}]({})\n'.format(settings.album, settings.album_url)
-        settings.statement += '*Genre{}*: {}\n'.format(('' if (len(settings.genres) == 1) else 's'), ', '.join(settings.genres))
-        settings.statement += '*Released*: {}\n'.format(settings.released)
-
-        update.message.reply_text(
-            settings.statement,
-            parse_mode=ParseMode.MARKDOWN
-        )
-        update.message.reply_audio(
-            audio=settings.file_id,
-            caption=settings.caption_ready,
-            parse_mode=ParseMode.MARKDOWN,
-            reply_markup=InlineKeyboardMarkup(settings.vote_keyboard)
-        )
-        update.message.reply_text(
-            'Is this good?',
-            reply_markup=InlineKeyboardMarkup(settings.confirm_keyboard)
-        )
-    else:
-        update.message.reply_text("I don't see no caption 🧐")
+            for a in settings.artists:
+                artists_str += '[{}]({}) & '.format(a['name'], a['url'])
+            settings.statement += '*Artist{}*: {}\n'.format('s' if (len(settings.artists) > 1) else '', artists_str[:-3])
+            settings.statement += '*Album*: [{}]({})\n'.format(settings.album, settings.album_url)
+            settings.statement += '*Genre{}*: {}\n'.format(('' if (len(settings.genres) == 1) else 's'), ', '.join(settings.genres))
+            settings.statement += '*Released*: {}\n'.format(settings.released)
+            
+            update.message.reply_text(
+                settings.statement,
+                parse_mode=ParseMode.MARKDOWN
+            )
+            bot.send_voice(
+                chat_id=update.message.chat.id,
+                voice=open('song.ogg', 'rb'),
+                caption=settings.caption_ready,
+                parse_mode=ParseMode.MARKDOWN,
+                timeout=1000
+            )
+            update.message.reply_audio(
+                audio=settings.file_id,
+                caption=f'🎧 @{settings.channel_username} 🦉',
+                parse_mode=ParseMode.MARKDOWN,
+                reply_markup=InlineKeyboardMarkup(settings.vote_keyboard)
+            )
+            update.message.reply_text(
+                'Is this good?',
+                reply_markup=InlineKeyboardMarkup(settings.confirm_keyboard)
+            )
+        else:
+            update.message.reply_text("I don't see no caption 🧐")
+    except Exception as e:
+        print(e)
+        traceback.print_tb(e.__traceback__)
