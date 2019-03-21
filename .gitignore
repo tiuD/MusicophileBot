@@ -12,6 +12,4 @@
 /__pycache__
 
 # initializations 
-bot.ini 
-privileges.ini
-database.ini
+*.ini
