@@ -385,6 +385,7 @@ def main():
     dispatcher.add_handler(CommandHandler('random', commands.rand, pass_args=True))
     dispatcher.add_handler(CommandHandler('publish', publish, pass_args=True))
     dispatcher.add_handler(CommandHandler('top', commands.top, pass_args=True))
+    dispatcher.add_handler(CommandHandler('genres', commands.genres))
     dispatcher.add_handler(CallbackQueryHandler(button))
 
     updater.start_polling()

@@ -263,3 +263,44 @@ def post(bot, update):
     except Exception as e:
         print(e)
         traceback.print_tb(e.__traceback__)
+
+
+def genres(bot, update):
+    try:
+        genre_report = ""
+        genre_rates = {}
+        vote_weight = {
+            "heart": 2,
+            "like": 1,
+            "dislike": -1,
+            "poop": -2
+        }
+        user_id = update.message.chat.id
+        client = MongoClient("localhost", 27017)
+        db = client[config("database.ini", "mongodb")["db_name"]]
+        votes = db["Votes"].find({"user_id": user_id})
+
+        for vote in votes:
+            song_id = vote["song_id"]
+            song = db["Songs"].find_one({"song_id": song_id})
+            for genre in song["genres"]:
+                if genre in genre_rates:
+                    genre_rates[genre] += vote_weight[vote["vote"]]
+                else:
+                    genre_rates[genre] = vote_weight[vote["vote"]]
+        
+        top_genres = sorted(genre_rates.items(), key=lambda x: x[1], reverse=True)
+
+        length = len(top_genres)
+        i = 0
+        count = 10 if length >= 10 else length
+        while i < count:
+            genre_report += f"{i+1}. {top_genres[i][0]}\n"
+            i += 1
+        
+        update.message.reply_text(genre_report)
+
+
+    except Exception as e:
+        print(e)
+        traceback.print_tb(e.__traceback__)
