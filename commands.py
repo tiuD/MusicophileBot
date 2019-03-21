@@ -185,7 +185,7 @@ def post(bot, update):
         scr = re.compile(r'.*\"(.*)\".*', re.MULTILINE | re.DOTALL) # song_caption_regex
         match = scr.match(caption)
         if match:
-            song_caption = match.group(1)
+            settings.caption = match.group(1)
 
             settings.file_id = update.message.audio.file_id
 
@@ -221,13 +221,6 @@ def post(bot, update):
             offset = song_caption.find(random_word)
             length = len(random_word)
 
-            settings.caption_ready = '{}[{}]({}){}'.format(
-                song_caption[: offset],
-                song_caption[offset: (offset+length)],
-                'https://t.me/{}'.format(settings.channel_username),
-                song_caption[(offset+length):]
-            )
-
             settings.statement += '*Song*: [{}]({})\n'.format(settings.name, settings.name_url)
 
             for a in settings.artists:
@@ -244,7 +237,7 @@ def post(bot, update):
             bot.send_voice(
                 chat_id=update.message.chat.id,
                 voice=open('song.ogg', 'rb'),
-                caption=settings.caption_ready,
+                caption=settings.caption,
                 parse_mode=ParseMode.MARKDOWN,
                 timeout=1000
             )

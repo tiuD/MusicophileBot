@@ -27,7 +27,7 @@ token = ''
 channel_id = ''
 channel_username = ''
 
-name, name_url, album, album_url, credit, statement, file_id, caption_ready = [''] * 8
+name, name_url, album, album_url, credit, statement, file_id, caption = [''] * 8
 artists = []
 genres = []
 released = 0

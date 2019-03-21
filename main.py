@@ -53,7 +53,7 @@ def button(bot, update):
             bot.send_voice(
                 chat_id=settings.channel_id,
                 voice=open('song.ogg', 'rb'),
-                caption=settings.caption_ready,
+                caption=settings.caption,
                 parse_mode=ParseMode.MARKDOWN,
                 timeout=1000
             )
