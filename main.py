@@ -45,7 +45,7 @@ def button(bot, update):
                     InlineKeyboardButton('💩', callback_data='poop')
                 ]
             ] 
-            bot.send_message(
+            sent_text = bot.send_message(
                 chat_id=settings.channel_id,
                 text=settings.statement,
                 parse_mode=ParseMode.MARKDOWN
@@ -60,7 +60,10 @@ def button(bot, update):
             sent_song = bot.send_audio(
                 chat_id=settings.channel_id,
                 audio=settings.file_id,
-                caption=f'🎧 @{settings.channel_username} 🦉',
+                caption='🎧 [@{}]({}) 🦉'.format(
+                    settings.channel_username,
+                    f'https://t.me/{settings.channel_username}/{sent_text.message_id}'
+                ),
                 parse_mode=ParseMode.MARKDOWN,
                 reply_markup=InlineKeyboardMarkup(keyboard)
             )

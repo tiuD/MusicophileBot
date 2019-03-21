@@ -243,7 +243,10 @@ def post(bot, update):
             )
             update.message.reply_audio(
                 audio=settings.file_id,
-                caption=f'🎧 @{settings.channel_username} 🦉',
+                caption='🎧 [@{}]({}) 🦉'.format(
+                    settings.channel_username,
+                    f'https://t.me/{settings.channel_username}'
+                ),
                 parse_mode=ParseMode.MARKDOWN,
                 reply_markup=InlineKeyboardMarkup(settings.vote_keyboard)
             )
