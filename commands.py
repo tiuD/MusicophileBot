@@ -14,7 +14,7 @@ def restricted(func):
             print(e)
             traceback.print_tb(e.__traceback__)
         if user_id not in settings.admins:
-            print('Aunthorized access denied for {}'.format(user_id))
+            print(f'Aunthorized access denied for {user_id}')
             return
         return func(bot, update, *args, **kwargs)
     return wrapped
@@ -52,10 +52,10 @@ def stats(bot, update):
         for vote in votes:
             distinct_users.update([vote['user_id']])
 
-        stats_statement += 'Number of songs: {}\n'.format(songs.count())
-        stats_statement += 'Number of genres: {}\n'.format(len(distinct_genres))
-        stats_statement += 'Number of votes: {}\n'.format(votes.count())
-        stats_statement += 'Number of users: {}\n'.format(len(distinct_users))
+        stats_statement += f'Number of songs: {songs.count()}\n'
+        stats_statement += f'Number of genres: {len(distinct_genres)}\n'
+        stats_statement += f'Number of votes: {votes.count()}\n'
+        stats_statement += f'Number of users: {len(distinct_users)}\n'
         update.message.reply_text(stats_statement)
     except Exception as e:
         print(e)
@@ -81,7 +81,7 @@ def top(bot, update, args):
 
         i = 1
         for item in freq.most_common(count):
-            result += '{}. {}: {} time{}\n'.format(i, item[0], item[1], ('s' if (item[1] > 1) else ''))
+            result += f'{i}. {item[0]}: {item[1]} time{"s" if (item[1] > 1) else ""}\n'
             i += 1
 
         update.message.reply_text(result)
@@ -124,10 +124,14 @@ def top(bot, update, args):
                 song[0],
                 settings.channel_username,
                 song[1][0],
-                settings.vote_emojis['heart'] if (heart > 0) else '', '{} '.format(heart) if(heart > 0) else '',
-                settings.vote_emojis['like'] if (like > 0) else '', '{} '.format(like) if(like > 0) else '',
-                settings.vote_emojis['dislike'] if (dislike > 0) else '', '{} '.format(dislike) if(dislike > 0) else '',
-                settings.vote_emojis['poop'] if (poop > 0) else '', '{} '.format(poop) if(poop > 0) else '',
+                settings.vote_emojis['heart'] if (heart > 0) else '',
+                f'{heart} ' if(heart > 0) else '',
+                settings.vote_emojis['like'] if (like > 0) else '',
+                f'{like} ' if(like > 0) else '',
+                settings.vote_emojis['dislike'] if (dislike > 0) else '',
+                f'{dislike} ' if(dislike > 0) else '',
+                settings.vote_emojis['poop'] if (poop > 0) else '',
+                f'{poop} ' if(poop > 0) else '',
                 'no votes yet' if((heart + like + dislike + poop) == 0) else ''
             )
             i += 1
@@ -145,7 +149,7 @@ def rand(bot, update, args):
         db = client[config('database.ini', 'mongodb')['db_name']]
         user_id = update.message.chat.id
         if (len(args) > 0):
-            user_genres = ['#{}'.format(x.replace(',', '').replace('#', '')) for x in args]
+            user_genres = [f'#{x.replace(",", "").replace("#, ")}' for x in args]
             songs = db['Songs'].find({"genres": {"$all": user_genres}})
         else:
             songs = db['Songs'].find({})
@@ -160,11 +164,8 @@ def rand(bot, update, args):
 
         bot.send_audio(
             chat_id=update.message.chat.id,
-            audio='https://t.me/{}/{}'.format(
-                settings.channel_username,
-                rand_song['song_id']
-            ),
-            caption=('\nYour vote: {}'.format(settings.vote_emojis[user_vote['vote']]) if user_vote else '')
+            audio=f'https://t.me/{settings.channel_username}/{rand_song["song_id"]}',
+            caption=(f'\nYour vote: {settings.vote_emojis[user_vote["vote"]]}' if user_vote else '')
         )
     except Exception as e:
         print(e)
@@ -221,7 +222,10 @@ def post(bot, update):
             offset = song_caption.find(random_word)
             length = len(random_word)
 
-            settings.statement += '*Song*: [{}]({})\n'.format(settings.name, settings.name_url)
+            settings.statement += '*Song*: [{}]({})\n'.format(
+                settings.name,
+                settings.name_url
+            )
 
             for a in settings.artists:
                 artists_str += '[{}]({}) & '.format(a['name'], a['url'])

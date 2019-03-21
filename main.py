@@ -26,7 +26,7 @@ def restricted(func):
     def wrapped(bot, update, *args, **kwargs):
         user_id = update.message.chat.id
         if user_id not in settings.admins:
-            print('Aunthorized access denied for {}'.format(user_id))
+            print(f'Aunthorized access denied for {user_id}')
             return
         return func(bot, update, *args, **kwargs)
     return wrapped
@@ -86,7 +86,7 @@ def button(bot, update):
                 }
             }
 
-            song_json['date'] = '{}'.format(datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+            song_json['date'] = f'{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}'
             
             client = MongoClient('localhost', 27017)
             db = client[config('database.ini', 'mongodb')['db_name']]
@@ -120,7 +120,7 @@ def button(bot, update):
     elif (query.data in list(settings.vote_emojis.keys())):
         vote = query.data
         inc_query = {}
-        inc_query["$inc"] = {"votes.{}".format(vote): 1}
+        inc_query["$inc"] = {f"votes.{vote}": 1}
         try: 
             client = MongoClient('localhost', 27017)
             db = client[config('database.ini', 'mongodb')['db_name']]
@@ -138,10 +138,13 @@ def button(bot, update):
                     "user_id": update.callback_query.from_user.id,
                     "vote": vote
                 })
-                bot.answer_callback_query(query.id, text='You {} this.'.format(settings.vote_emojis.get(vote)))
+                bot.answer_callback_query(
+                    query.id,
+                    text=f'You {settings.vote_emojis.get(vote)} this.'
+                )
             else:
                 dec_query = {}
-                dec_query["$inc"] = {"votes.{}".format(res['vote']): -1}
+                dec_query["$inc"] = {f'votes.{res["vote"]}': -1}
                 db['Songs'].update_one(
                     {"song_id": query.message.message_id},
                     dec_query
@@ -161,9 +164,15 @@ def button(bot, update):
                         "user_id": update.callback_query.from_user.id,
                         "vote": vote
                     })
-                    bot.answer_callback_query(query.id, text='You {} this.'.format(settings.vote_emojis.get(vote)))
+                    bot.answer_callback_query(
+                        query.id,
+                        text=f'You {settings.vote_emojis.get(vote)} this.'
+                    )
                 else:
-                    bot.answer_callback_query(query.id, text='You no longer {} this.'.format(settings.vote_emojis.get(vote)))
+                    bot.answer_callback_query(
+                        query.id,
+                        text=f'You no longer {settings.vote_emojis.get(vote)} this.'
+                    )
             res = db['Songs'].find_one({
                 "song_id": query.message.message_id
             })
@@ -175,10 +184,22 @@ def button(bot, update):
 
             NEW_KEYBOARD = [
                 [
-                    InlineKeyboardButton('♥️ {}'.format((heart if (heart > 0) else '')), callback_data='heart'),
-                    InlineKeyboardButton('👍🏼 {}'.format((like if (like > 0) else '')), callback_data='like'),
-                    InlineKeyboardButton('👎🏼 {}'.format((dislike if (dislike > 0) else '')), callback_data='dislike'),
-                    InlineKeyboardButton('💩 {}'.format((poop if (poop > 0) else '')), callback_data='poop')
+                    InlineKeyboardButton(
+                        f'♥️ {(heart if (heart > 0) else "")}',
+                        callback_data='heart'
+                    ),
+                    InlineKeyboardButton(
+                        f'👍🏼 {like if (like > 0) else ""}',
+                        callback_data='like'
+                    ),
+                    InlineKeyboardButton(
+                        f'👎🏼 {dislike if (dislike > 0) else ""}',
+                        callback_data='dislike'
+                    ),
+                    InlineKeyboardButton(
+                        f'💩 {poop if (poop > 0) else ""}',
+                        callback_data='poop'
+                    )
                 ]
             ]
 
@@ -206,12 +227,10 @@ def myvotes(bot, update):
 
         index = 1
         for vote in votes:
-            msg += '{}. [{}]({}): {}\n'.format(index, 
-                db['Songs'].find_one({"song_id": vote['song_id']})['name'],
-                'https://t.me/{}/{}'.format(
-                    settings.channel_username,
-                    vote['song_id']
-                ),
+            msg += '{}. [{}]({}): {}\n'.format(
+                index,
+                db['Songs'].find_one({"song_id": vote["song_id"]})["name"],
+                f'https://t.me/{settings.channel_username}/{vote["song_id"]}',
                 settings.vote_emojis[vote['vote']])
             index += 1
         
@@ -234,8 +253,8 @@ def publish(bot, update, args):
             year = now.year
             month = now.month
 
-            PUBLISH_TEXT = 'Top Songs posted in _{}_\n'.format(calendar.month_name[month])
-            regx = re.compile("^{}-{:02d}-(.*)$".format(year, month))
+            PUBLISH_TEXT = f'Top Songs posted in _{calendar.month_name[month]}_\n'
+            regx = re.compile(f"^{year}-{month:02d}-(.*)$")
 
             scores = {}
 
@@ -267,14 +286,18 @@ def publish(bot, update, args):
                     song[0],
                     settings.channel_username,
                     song[1][0],
-                    settings.vote_emojis['heart'] if (heart > 0) else '', '{} '.format(heart) if(heart > 0) else '',
-                    settings.vote_emojis['like'] if (like > 0) else '', '{} '.format(like) if(like > 0) else '',
-                    settings.vote_emojis['dislike'] if (dislike > 0) else '', '{} '.format(dislike) if(dislike > 0) else '',
-                    settings.vote_emojis['poop'] if (poop > 0) else '', '{} '.format(poop) if(poop > 0) else '',
+                    settings.vote_emojis['heart'] if (heart > 0) else '',
+                    f'{heart} ' if(heart > 0) else '',
+                    settings.vote_emojis['like'] if (like > 0) else '',
+                    f'{like} ' if(like > 0) else '',
+                    settings.vote_emojis['dislike'] if (dislike > 0) else '',
+                    f'{dislike} ' if(dislike > 0) else '',
+                    settings.vote_emojis['poop'] if (poop > 0) else '',
+                    f'{poop} ' if(poop > 0) else '',
                     'no votes yet' if((heart + like + dislike + poop) == 0) else ''
                 )
                 i += 1
-            
+
             keyboard = [
                 [
                     InlineKeyboardButton('publish', callback_data='publish'),
@@ -290,8 +313,8 @@ def publish(bot, update, args):
             now = datetime.now()
             year = now.year
 
-            PUBLISH_TEXT = 'Top Songs posted in _{}_\n'.format(year)
-            regx = re.compile("^{}-(.*)-(.*)$".format(year))
+            PUBLISH_TEXT = f'Top Songs posted in _{year}_\n'
+            regx = re.compile(f"^{year}-(.*)-(.*)$")
 
             scores = {}
 
@@ -299,11 +322,11 @@ def publish(bot, update, args):
 
             for song in songs:
                 score = (
-                        (song['votes']['heart'] * 2) + 
-                        (song['votes']['like']) + 
-                        (song['votes']['dislike'] * (-1)) + 
-                        (song['votes']['poop'] * (-2))
-                        )
+                    (song['votes']['heart'] * 2) +
+                    (song['votes']['like']) +
+                    (song['votes']['dislike'] * (-1)) +
+                    (song['votes']['poop'] * (-2))
+                )
                 scores[song['name']] = (song['song_id'], score, song['votes'])
             
             top_songs = sorted(scores.items(), key=lambda x:x[1][1], reverse=True)
@@ -323,10 +346,14 @@ def publish(bot, update, args):
                     song[0],
                     settings.channel_username,
                     song[1][0],
-                    settings.vote_emojis['heart'] if (heart > 0) else '', '{} '.format(heart) if(heart > 0) else '',
-                    settings.vote_emojis['like'] if (like > 0) else '', '{} '.format(like) if(like > 0) else '',
-                    settings.vote_emojis['dislike'] if (dislike > 0) else '', '{} '.format(dislike) if(dislike > 0) else '',
-                    settings.vote_emojis['poop'] if (poop > 0) else '', '{} '.format(poop) if(poop > 0) else '',
+                    settings.vote_emojis['heart'] if (heart > 0) else '',
+                    f'{heart} ' if(heart > 0) else '',
+                    settings.vote_emojis['like'] if (like > 0) else '',
+                    f'{like} ' if(like > 0) else '',
+                    settings.vote_emojis['dislike'] if (dislike > 0) else '',
+                    f'{dislike} ' if(dislike > 0) else '',
+                    settings.vote_emojis['poop'] if (poop > 0) else '',
+                    f'{poop} ' if(poop > 0) else '',
                     'no votes yet' if((heart + like + dislike + poop) == 0) else ''
                 )
                 i += 1
