@@ -114,9 +114,11 @@ def button(bot, update):
         )
 
     elif (query.data == 'cancel'):
-        bot.edit_message_text(text="Oh 😮 OK then 😬 I'll try to forget about it.",
-                              chat_id=query.message.chat_id,
-                              message_id=query.message.message_id)
+        bot.edit_message_text(
+            text="Oh 😮 OK then 😬 I'll try to forget about it.",
+            chat_id=query.message.chat_id,
+            message_id=query.message.message_id
+        )
     elif (query.data in list(settings.vote_emojis.keys())):
         vote = query.data
         inc_query = {}
@@ -234,9 +236,11 @@ def myvotes(bot, update):
                 settings.vote_emojis[vote['vote']])
             index += 1
         
-        update.message.reply_text(msg, 
-                disable_web_page_preview=True,
-                parse_mode=ParseMode.MARKDOWN)
+        update.message.reply_text(
+            msg,
+            disable_web_page_preview=True,
+            parse_mode=ParseMode.MARKDOWN
+        )
     except Exception as e:
         print(e)
 
@@ -262,11 +266,11 @@ def publish(bot, update, args):
 
             for song in songs:
                 score = (
-                        (song['votes']['heart'] * 2) + 
-                        (song['votes']['like']) + 
-                        (song['votes']['dislike'] * (-1)) + 
-                        (song['votes']['poop'] * (-2))
-                        )
+                    (song['votes']['heart'] * 2) +
+                    (song['votes']['like']) +
+                    (song['votes']['dislike'] * (-1)) +
+                    (song['votes']['poop'] * (-2))
+                )
                 scores[song['name']] = (song['song_id'], score, song['votes'])
             
             top_songs = sorted(scores.items(), key=lambda x:x[1][1], reverse=True)
@@ -305,10 +309,12 @@ def publish(bot, update, args):
                 ]
             ]
             
-            update.message.reply_text(PUBLISH_TEXT, 
-                                    parse_mode=ParseMode.MARKDOWN, 
-                                    disable_web_page_preview=True,
-                                    reply_markup=InlineKeyboardMarkup(keyboard))
+            update.message.reply_text(
+                PUBLISH_TEXT,
+                parse_mode=ParseMode.MARKDOWN,
+                disable_web_page_preview=True,
+                reply_markup=InlineKeyboardMarkup(keyboard)
+            )
         elif(argument == 'top songs last_year'):
             now = datetime.now()
             year = now.year
@@ -365,10 +371,12 @@ def publish(bot, update, args):
                 ]
             ]
             
-            update.message.reply_text(PUBLISH_TEXT, 
-                                    parse_mode=ParseMode.MARKDOWN, 
-                                    disable_web_page_preview=True,
-                                    reply_markup=InlineKeyboardMarkup(keyboard))
+            update.message.reply_text(
+                PUBLISH_TEXT,
+                parse_mode=ParseMode.MARKDOWN,
+                disable_web_page_preview=True,
+                reply_markup=InlineKeyboardMarkup(keyboard)
+            )
     except Exception as e:
         traceback.print_tb(e.__traceback__)
 
