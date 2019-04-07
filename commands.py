@@ -21,7 +21,6 @@ def restricted(func):
 
 
 def start(bot, update):
-    print(settings.admins)
     statement = 'Hey! Welcome to *MusicophileBot*!\n'
     statement += "You can use bot to listen to random songs, see the songs you've voted, and more.\n"
     statement += 'To see the commands, simply type /commands.\n'
