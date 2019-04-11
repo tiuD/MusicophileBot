@@ -24,7 +24,7 @@ CONFIRM_KEYBOARD = [
 def restricted(func): 
     @wraps(func)
     def wrapped(bot, update, *args, **kwargs):
-        user_id = update.message.chat.id
+        user_id = update.effective_user.id
         if user_id not in settings.admins:
             print(f'Aunthorized access denied for {user_id}')
             return

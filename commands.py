@@ -9,7 +9,7 @@ def restricted(func):
     @wraps(func)
     def wrapped(bot, update, *args, **kwargs):
         try:
-            user_id = update.message.chat.id
+            user_id = update.effective_user.id
         except Exception as e:
             print(e)
             traceback.print_tb(e.__traceback__)
