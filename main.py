@@ -57,13 +57,29 @@ def button(bot, update):
                 parse_mode=ParseMode.MARKDOWN,
                 timeout=1000
             )
+            audio_caption = ''
+            if settings.another_channel_username != '':
+                audio_caption = '🎧 [@{}]({})\n🦉 [@{}]({})'.format(
+                    settings.another_channel_username,
+                    settings.another_channel_url,
+                    settings.channel_username,
+                    f'https://t.me/{settings.channel_username}/{sent_text.message_id}'
+                )
+            elif settings.member != '':
+                audio_caption = '🎧 Sent by {}\n🦉 [@{}]({})'.format(
+                    settings.member,
+                    settings.channel_username,
+                    f'https://t.me/{settings.channel_username}/{sent_text.message_id}'
+                )
+            else:
+                audio_caption = '🎧 [@{}]({}) 🦉'.format(
+                    settings.channel_username,
+                    f'https://t.me/{settings.channel_username}/{sent_text.message_id}'
+                )
             sent_song = bot.send_audio(
                 chat_id=settings.channel_id,
                 audio=settings.file_id,
-                caption='🎧 [@{}]({}) 🦉'.format(
-                    settings.channel_username,
-                    f'https://t.me/{settings.channel_username}/{sent_text.message_id}'
-                ),
+                caption=audio_caption,
                 parse_mode=ParseMode.MARKDOWN,
                 reply_markup=InlineKeyboardMarkup(keyboard)
             )
@@ -83,7 +99,8 @@ def button(bot, update):
                     "like": 0,
                     "dislike": 0,
                     "poop": 0
-                }
+                },
+                "sent_by": settings.member
             }
 
             song_json['date'] = f'{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}'

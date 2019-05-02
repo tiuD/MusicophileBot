@@ -179,6 +179,9 @@ def post(bot, update):
         settings.artists = []
         settings.genres = []
         settings.statement = ''
+        settings.member = ''
+        settings.another_channel_url = ''
+        settings.another_channel_username = ''
         artists_str = ''
         song_caption = ''
 
@@ -208,11 +211,16 @@ def post(bot, update):
                     elif text[0] == '$':
                         settings.album = text[1:]
                         settings.album_url = url
+                    elif text[0] == '#':
+                        settings.another_channel_username = text[1:]
+                        settings.another_channel_url = url
                 elif entity['type'] == 'hashtag':
                     if text[1] == 'r':
                         settings.released = int(text[2:])
                     elif text[1] == 's':
                         audiotools.sample(bot, update, text[2:])
+                    elif text[1] == 'm':
+                        settings.member = f'#{text[2:]}'
                     else:
                         settings.genres.append(text)
 
@@ -244,12 +252,29 @@ def post(bot, update):
                 parse_mode=ParseMode.MARKDOWN,
                 timeout=1000
             )
-            update.message.reply_audio(
-                audio=settings.file_id,
-                caption='🎧 [@{}]({}) 🦉'.format(
+
+            audio_caption = ''
+            if settings.another_channel_username != '':
+                audio_caption = '🎧 [@{}]({})\n🦉 [@{}]({})'.format(
+                    settings.another_channel_username,
+                    settings.another_channel_url,
                     settings.channel_username,
                     f'https://t.me/{settings.channel_username}'
-                ),
+                )
+            elif settings.member != '':
+                audio_caption = '🎧 Sent by {}\n🦉 [@{}]({})'.format(
+                    settings.member,
+                    settings.channel_username,
+                    f'https://t.me/{settings.channel_username}'
+                )
+            else:
+                audio_caption = '🎧 [@{}]({}) 🦉'.format(
+                    settings.channel_username,
+                    f'https://t.me/{settings.channel_username}'
+                )
+            update.message.reply_audio(
+                audio=settings.file_id,
+                caption=audio_caption,
                 parse_mode=ParseMode.MARKDOWN,
                 reply_markup=InlineKeyboardMarkup(settings.vote_keyboard)
             )

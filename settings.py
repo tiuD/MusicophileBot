@@ -26,6 +26,9 @@ confirm_keyboard = [
 token = ''
 channel_id = ''
 channel_username = ''
+member = ''
+another_channel_username = ''
+another_channel_url = ''
 
 name, name_url, album, album_url, credit, statement, file_id, caption = [''] * 8
 artists = []
